@@ -1,0 +1,55 @@
+This is BibTeX, Version 0.99d (TeX Live 2018)
+Capacity: max_strings=100000, hash_size=100000, hash_prime=85009
+The top-level auxiliary file: caip_acl_2020.aux
+The style file: acl_natbib.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated singl_function (elt_size=4) to 100 items from 50.
+Database file #1: refs.bib
+Warning--I'm ignoring wang2017naturalizing's extra "year" field
+--line 193 of file refs.bib
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Warning--empty journal in wang2017naturalizing
+You've used 47 entries,
+            3571 wiz_defined-function locations,
+            947 strings with 16449 characters,
+and the built_in function-call counts, 36647 in all, are:
+= -- 3038
+> -- 2067
+< -- 32
++ -- 667
+- -- 603
+* -- 2521
+:= -- 5467
+add.period$ -- 190
+call.type$ -- 47
+change.case$ -- 472
+chr.to.int$ -- 48
+cite$ -- 48
+duplicate$ -- 2469
+empty$ -- 2461
+format.name$ -- 754
+if$ -- 7934
+int.to.chr$ -- 2
+int.to.str$ -- 1
+missing$ -- 512
+newline$ -- 239
+num.names$ -- 188
+pop$ -- 1205
+preamble$ -- 1
+purify$ -- 388
+quote$ -- 0
+skip$ -- 1663
+stack$ -- 0
+substring$ -- 1160
+swap$ -- 1231
+text.length$ -- 21
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 423
+warning$ -- 1
+while$ -- 196
+width$ -- 0
+write$ -- 598
+(There were 2 warnings)
