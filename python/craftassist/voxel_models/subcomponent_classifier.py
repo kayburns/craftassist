@@ -46,7 +46,11 @@ class SubcomponentClassifierWrapper:
             for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
                 to_label.append(obj)
         # add all blocks near the agent
+        #import pdb; pdb.set_trace()
         for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
+            #points = [o[0] for o in obj]
+            #min_max = min(points) + max(points)
+            #self.agent.point_at(min_max)
             to_label.append(obj)
 
         for obj in to_label:
@@ -77,6 +81,7 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l].append(b)
                     else:
                         label2blocks[l] = [b]
+            import pdb; pdb.set_trace()
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
                 if not contaminated(blocks):

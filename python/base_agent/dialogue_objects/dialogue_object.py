@@ -277,6 +277,7 @@ reference object is correct."""
 class ConfirmReferenceObject(DialogueObject):
     def __init__(self, reference_object, **kwargs):
         super().__init__(**kwargs)
+        import pdb; pdb.set_trace()
         r = reference_object
         if hasattr(r, "get_point_at_target"):
             self.bounds = r.get_point_at_target()

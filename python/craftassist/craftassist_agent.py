@@ -316,7 +316,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--nsp_data_dir",
-        default="models/ttad_bert_updated/annotated_data/",
+        default="/craftassist/collected_dataset",
         help="path to annotated data",
     )
     parser.add_argument(
@@ -330,7 +330,7 @@ if __name__ == "__main__":
     #     help="path to greetings",
     # )
     parser.add_argument(
-        "--semseg_model_path", default="", help="path to semantic segmentation model"
+        "--semseg_model_path", default="/craftassist/python/craftassist/models/vision/sem_seg_model.pth", help="path to semantic segmentation model"
     )
     parser.add_argument(
         "--semseg_vocab_path", default="", help="path to block-id vocab map for segmentation model"

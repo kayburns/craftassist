@@ -22,7 +22,8 @@ class SemSegNet(nn.Module):
             if opts.vocab_path != "":
                 self.load_vocab(opts.vocab_path)
             else:
-                raise ("loading from file specified but no vocab_path specified")
+                self.vocab = None
+                print ("loading from file specified but no vocab_path specified")
         else:
             self.opts = opts
             self._build()
@@ -69,7 +70,7 @@ class SemSegNet(nn.Module):
         self.out = nn.Conv3d(hidden_dim, opts.num_classes, kernel_size=1)
         self.lsm = nn.LogSoftmax(dim=1)
 
-    def forward(self, x):
+    def forward(self, x, T=1):
         # FIXME when pytorch is ready for this, embedding
         # backwards is soooooo slow
         # z = self.embedding(x)
@@ -81,7 +82,7 @@ class SemSegNet(nn.Module):
         z = z.permute(0, 4, 1, 2, 3).contiguous()
         for i in range(self.num_layers):
             z = self.layers[i](z)
-        return self.lsm(self.out(z))
+        return self.lsm(self.out(z/T))
 
     def save(self, filepath):
         self.cpu()
@@ -170,7 +171,7 @@ class SemSegWrapper:
         blocks = blocks.unsqueeze(0)
         if self.cuda:
             blocks = blocks.cuda()
-        y = self.model(blocks)
+        y = self.model(blocks, T=.001)
         _, mids = y.squeeze().max(0)
         locs = mids.nonzero()
         locs = locs.tolist()
