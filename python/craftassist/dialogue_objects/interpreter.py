@@ -314,7 +314,6 @@ class Interpreter(DialogueObject):
         return None, None
 
     def handle_destroy(self, speaker, d) -> Tuple[Optional[str], Any]:
-        import pdb; pdb.set_trace()
         default_ref_d = {"filters": {"location": SPEAKERLOOK}}
         ref_d = d.get("reference_object", default_ref_d)
         objs = interpret_reference_object(self, speaker, ref_d, only_destructible=True)
