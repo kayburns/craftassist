@@ -336,7 +336,7 @@ def interpret_reference_location(interpreter, speaker, d):
         raise ErrorWithResponse("I don't know what you're referring to")
 
     mems = mems[:expected_num]
-    interpreter.memory.update_recent_entities(mems)
+    interpreter.memory.update_recent_entities(mems) #FLAG
     # TODO: are there any memories where get_pos() doesn't return something?
     return mems
 

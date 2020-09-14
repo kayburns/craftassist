@@ -48,8 +48,8 @@ class SubcomponentClassifierWrapper:
         # add all blocks near the agent
         #import pdb; pdb.set_trace()
         for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
-            #points = [o[0] for o in obj]
-            #min_max = min(points) + max(points)
+            points = [o[0] for o in obj]
+            min_max = min(points) + max(points)
             #self.agent.point_at(min_max)
             to_label.append(obj)
 
@@ -83,18 +83,18 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l] = [b]
 
             #import pdb; pdb.set_trace()
-            self.agent.send_chat("Here is what I think is in the scene.")
+            #self.agent.send_chat("Here is what I think is in the scene.")
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
                 if not contaminated(blocks):
-                    self.agent.send_chat("This is a %s" %l)
                     locs = [loc for loc, idm in blocks]
-                    min_xyz = min(locs)
-                    max_xyz = max(locs)
-                    min_max = min_xyz + max(min_xyz, max_xyz)
-                    #x,y,z = zip(*locs)
+                    #self.agent.send_chat("This is a %s" %l)
+                    #min_xyz = min(locs)
+                    #max_xyz = max(locs)
+                    #min_max = min_xyz + max(min_xyz, max_xyz)
+                    ##x,y,z = zip(*locs)
                     #min_max = [min(x), min(y), min(z), max(x), max(y), max(z)]
-                    self.agent.point_at(min_max, sleep=4)
+                    #self.agent.point_at(min_max, sleep=4)
                     InstSegNode.create(self.memory, locs, [l])
 
 

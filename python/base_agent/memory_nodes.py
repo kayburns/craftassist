@@ -70,6 +70,7 @@ class MemoryNode:
 
 
 def link_archive_to_mem(agent_memory, memid, archive_memid):
+    print("linked archive to mem")
     agent_memory.add_triple(subj=archive_memid, pred_text="_archive_of", obj=memid)
     agent_memory.add_triple(subj=memid, pred_text="_has_archive", obj=archive_memid)
 

@@ -84,7 +84,7 @@ class VoxelObjectNode(ReferenceObjectNode):
         info = list(self.ref_info)
         info[0] = archive_memid
         agent_memory._db_write(cmd, *info)
-        link_archive_to_mem(agent_memory, self.memid, archive_memid)
+        link_archive_to_mem(agent_memory, self.memid, archive_memid) #FLAG
         return archive_memid
 
 

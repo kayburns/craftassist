@@ -249,6 +249,7 @@ class Interpreter(DialogueObject):
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
+        import pdb; pdb.set_trace()
         mems = interpret_reference_location(self, speaker, location_d)
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True

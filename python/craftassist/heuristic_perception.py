@@ -511,6 +511,7 @@ class PerceptionWrapper:
             # perceive blocks in marked areas
             for pos, radius in self.agent.areas_to_perceive:
                 for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
+
                     BlockObjectNode.create(self.agent.memory, obj)
                 get_all_nearby_holes(self.agent, pos, radius)
                 get_nearby_airtouching_blocks(self.agent, pos, radius)
