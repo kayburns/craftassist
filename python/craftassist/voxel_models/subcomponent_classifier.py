@@ -46,7 +46,6 @@ class SubcomponentClassifierWrapper:
             for obj in all_nearby_objects(self.agent.get_blocks, pos, radius):
                 to_label.append(obj)
         # add all blocks near the agent
-        #import pdb; pdb.set_trace()
         for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
             points = [o[0] for o in obj]
             min_max = min(points) + max(points)
@@ -82,7 +81,6 @@ class SubcomponentClassifierWrapper:
                     else:
                         label2blocks[l] = [b]
 
-            #import pdb; pdb.set_trace()
             #self.agent.send_chat("Here is what I think is in the scene.")
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
@@ -125,6 +123,8 @@ class SubComponentClassifier(Process):
         while True:  # run forever
             tb = self.block_objs_q.get(block=True, timeout=None)
             loc2labels = self._watch_single_object(tb)
+            for k in loc2labels.keys():
+                loc2labels[k].append("house")
             self.loc2labels_q.put((loc2labels, tb))
 
     def _watch_single_object(self, tuple_blocks):

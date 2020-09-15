@@ -521,3 +521,4 @@ class PerceptionWrapper:
                 BlockObjectNode.create(self.agent.memory, obj)
             get_all_nearby_holes(self.agent, self.agent.pos, radius=self.radius)
             get_nearby_airtouching_blocks(self.agent, self.agent.pos, radius=self.radius)
+

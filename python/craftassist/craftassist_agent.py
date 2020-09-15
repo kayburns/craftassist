@@ -142,8 +142,11 @@ class CraftAssistAgent(LocoMCAgent):
             return
 
         # list of (prob, default function) pairs
+        #visible_defaults = [
+        #    (0.001, default_behaviors.build_random_shape),
+        #    (0.005, default_behaviors.come_to_player),
+        #]
         visible_defaults = [
-            (0.001, default_behaviors.build_random_shape),
             (0.005, default_behaviors.come_to_player),
         ]
         # default behaviors of the agent not visible in the game

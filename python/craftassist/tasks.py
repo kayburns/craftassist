@@ -20,8 +20,6 @@ import search
 from heuristic_perception import ground_height
 import util
 
-from threedhouses.src import build_proposal as build_proposal
-
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
 
@@ -214,8 +212,6 @@ class Move(Task):
 class Build(Task):
     def __init__(self, agent, task_data):
         super(Build, self).__init__()
-        import pdb; pdb.set_trace()
-        build_proposal.print_test()
         self.task_data = task_data
         self.embed = task_data.get("embed", False)
         self.schematic, _ = blocks_list_to_npy(task_data["blocks_list"])

@@ -11,6 +11,8 @@ from word2number.w2n import word_to_num
 import sys
 import os
 
+from threedhouses.src import build_proposal as build_proposal
+
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(BASE_AGENT_ROOT)
 
@@ -251,6 +253,7 @@ class Interpreter(DialogueObject):
         location_d = d.get("location", SPEAKERLOOK)
         import pdb; pdb.set_trace()
         mems = interpret_reference_location(self, speaker, location_d)
+        build_proposal.print_test()
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
