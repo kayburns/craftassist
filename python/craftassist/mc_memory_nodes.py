@@ -143,16 +143,20 @@ class BlockObjectNode(VoxelObjectNode):
 class InstSegNode(VoxelObjectNode):
     """ this is a voxel object that represents a region of space, and is considered ephemeral"""
 
-    TABLE_COLUMNS = ["uuid", "x", "y", "z", "ref_type"]
+    TABLE_COLUMNS = ["uuid", "x", "y", "z", "bid", "meta" "ref_type"]
     # FIXME this shouldn't be used, but is being used in e.g. get_recent_entities
     TABLE = "inst_seg"
     NODE_TYPE = "InstSeg"
 
     @classmethod
-    def create(cls, memory, locs, tags=[]) -> str:
+    def create(cls, memory, blocks, tags=[]) -> str:
         # TODO option to not overwrite
         # check if instance segmentation object already exists in memory
         inst_memids = {}
+        if len(blocks[0]) == 2: # hack to store block type for sem seg
+            locs = [loc for loc, idm in blocks]
+        else:
+            locs = blocks
         for xyz in locs:
             m = memory._db_read(
                 'SELECT uuid from VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
@@ -173,9 +177,14 @@ class InstSegNode(VoxelObjectNode):
         # TODO check/assert this isn't there...
         cmd = "INSERT INTO ReferenceObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
         memory._db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
-        for loc in locs:
-            cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
-            memory._db_write(cmd, memid, loc[0], loc[1], loc[2], "inst_seg")
+        if len(blocks[0]) == 2: 
+            for loc, idm in blocks:
+                cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, bid, meta, ref_type) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
+                memory._db_write(cmd, memid, loc[0], loc[1], loc[2], idm[0], idm[1], "inst_seg")
+        else:
+            for loc in locs:
+                cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, bid, meta, ref_type) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
+                memory._db_write(cmd, memid, loc[0], loc[1], loc[2], 0, 0, "inst_seg")
         memory.tag(memid, "_voxel_object")
         memory.tag(memid, "_inst_seg")
         memory.tag(memid, "_destructible")

@@ -269,6 +269,7 @@ class Build(Task):
         # get blocks occupying build area and save state for undo()
         ox, oy, oz = self.origin
         sy, sz, sx, _ = self.schematic.shape
+        import pdb; pdb.set_trace()
         current = agent.get_blocks(ox, ox + sx - 1, oy, oy + sy - 1, oz, oz + sz - 1)
         self.old_blocks_list = npy_to_blocks_list(current, self.origin)
         if len(self.old_blocks_list) > 0:
@@ -599,39 +600,28 @@ class Destroy(Task):
         # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
         #    pass
 
-        origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
+        #origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
+        # flatten only coordinates into list
+        import pdb; pdb.set_trace()
+        coords_to_remove = [str(c) for (xyz, bm) in self.schematic for c in xyz]
 
-        def to_destroy_schm(block_list):
-            """Convert idm of block list to negative
+        destroy_command = "/destroy " + " ".join(coords_to_remove) 
+        self.agent.send_chat(destroy_command)
 
-            For each block ((x, y, z), (b, m)), convert (b, m) to (-1, 0) indicating
-            it should be digged or destroyed.
-
-            Args:
-            - block_list: a list of ((x,y,z), (id, meta))
-
-            Returns:
-            - a block list of ((x,y,z), (-1, 0))
-            """
-
-            destroy_schm = [((x, y, z), (-1, 0)) for ((x, y, z), (b, m)) in block_list]
-            return destroy_schm
-
-        destroy_schm = to_destroy_schm(self.schematic)
-        self.build_task = Build(
-            agent,
-            {
-                "blocks_list": destroy_schm,
-                "origin": origin,
-                "force": True,
-                "verbose": False,
-                "embed": True,
-                "dig_message": self.dig_message,
-                "is_destroy_schm": not self.dig_message,
-                "DIG_REACH": self.DIG_REACH,
-            },
-        )
-        agent.memory.task_stack_push(self.build_task, parent_memid=self.memid)
+        #self.build_task = Build(
+        #    agent,
+        #    {
+        #        "blocks_list": destroy_schm,
+        #        "origin": origin,
+        #        "force": True,
+        #        "verbose": False,
+        #        "embed": True,
+        #        "dig_message": self.dig_message,
+        #        "is_destroy_schm": not self.dig_message,
+        #        "DIG_REACH": self.DIG_REACH,
+        #    },
+        #)
+        #agent.memory.task_stack_push(self.build_task, parent_memid=self.memid)
         self.finished = True
 
     def undo(self, agent):

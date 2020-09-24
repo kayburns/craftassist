@@ -70,7 +70,7 @@ class SemSegNet(nn.Module):
         self.out = nn.Conv3d(hidden_dim, opts.num_classes, kernel_size=1)
         self.lsm = nn.LogSoftmax(dim=1)
 
-    def forward(self, x, T=1):
+    def forward(self, x, T=.001):
         # FIXME when pytorch is ready for this, embedding
         # backwards is soooooo slow
         # z = self.embedding(x)
@@ -139,7 +139,7 @@ class SemSegWrapper:
         assert self.classes["name2idx"]["none"] == 0
 
     @torch.no_grad()
-    def segment_object(self, blocks):
+    def segment_object(self, blocks, T=1):
         self.model.eval()
 
         if self.model.vocab:
@@ -171,7 +171,7 @@ class SemSegWrapper:
         blocks = blocks.unsqueeze(0)
         if self.cuda:
             blocks = blocks.cuda()
-        y = self.model(blocks, T=.001)
+        y = self.model(blocks, T=T)
         _, mids = y.squeeze().max(0)
         locs = mids.nonzero()
         locs = locs.tolist()

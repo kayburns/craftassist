@@ -82,10 +82,11 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l] = [b]
 
             #self.agent.send_chat("Here is what I think is in the scene.")
+            import pdb; pdb.set_trace() # are the blocks right?
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore
                 if not contaminated(blocks):
-                    locs = [loc for loc, idm in blocks]
+                    #locs = [loc for loc, idm in blocks]
                     #self.agent.send_chat("This is a %s" %l)
                     #min_xyz = min(locs)
                     #max_xyz = max(locs)
@@ -93,7 +94,7 @@ class SubcomponentClassifierWrapper:
                     ##x,y,z = zip(*locs)
                     #min_max = [min(x), min(y), min(z), max(x), max(y), max(z)]
                     #self.agent.point_at(min_max, sleep=4)
-                    InstSegNode.create(self.memory, locs, [l])
+                    InstSegNode.create(self.memory, blocks, [l])
 
 
 class SubComponentClassifier(Process):
