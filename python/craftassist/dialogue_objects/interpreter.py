@@ -221,6 +221,7 @@ class Interpreter(DialogueObject):
 
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
         # Get the segment to build
+        import pdb; pdb.set_trace()
         if "reference_object" in d:
             # handle copy
             repeat = get_repeat_num(d)
@@ -251,12 +252,11 @@ class Interpreter(DialogueObject):
 
         # Get the locations to build
         location_d = d.get("location", SPEAKERLOOK)
-        import pdb; pdb.set_trace()
         mems = interpret_reference_location(self, speaker, location_d)
-        build_proposal.print_test()
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
+        build_proposal.print_test()
         interprets_with_offsets = [
             (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
         ]
@@ -318,7 +318,6 @@ class Interpreter(DialogueObject):
         return None, None
 
     def handle_destroy(self, speaker, d) -> Tuple[Optional[str], Any]:
-        import pdb; pdb.set_trace()
         default_ref_d = {"filters": {"location": SPEAKERLOOK}}
         ref_d = d.get("reference_object", default_ref_d)
         objs = interpret_reference_object(self, speaker, ref_d, only_destructible=True)

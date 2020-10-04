@@ -4,7 +4,7 @@
 PLUGIN = nil
 
 function Initialize(Plugin)
-    Plugin:SetName("RemoveBlocks")
+    Plugin:SetName("DestroyBlocks")
     Plugin:SetVersion(1)
 
     PLUGIN = Plugin
@@ -32,13 +32,6 @@ function Destroy(Split, Player)
 	    r = q + 1
 	    World:DigBlock(Split[p], Split[q], Split[r])
 	end
-        -- for p = Split[2],Split[5] do
-        --     for q = Split[3],Split[6] do
-        --         for r = Split[4],Split[7] do
-        --             World:DigBlock(p, q, r)
-        --         end
-        --     end
-        -- end
     end
 
     CurrentWorld:ScheduleTask(0, Destroy)

@@ -68,6 +68,7 @@ class CraftAssistAgent(LocoMCAgent):
         self.memory = mc_memory.MCAgentMemory(
             db_file=os.environ.get("DB_FILE", ":memory:"),
             db_log_path="agent_memory.{}.log".format(self.name),
+            load_minecraft_specs=self.load_specs
         )
         logging.info("Initialized agent memory")
 
@@ -341,6 +342,7 @@ if __name__ == "__main__":
     parser.add_argument("--geoscorer_model_path", default="", help="path to geoscorer model")
     parser.add_argument("--port", type=int, default=25565)
     parser.add_argument("--verbose", "-v", action="store_true", help="Debug logging")
+    parser.add_argument("--load_specs", "-load", action="store_true", help="Will load Mincraft specs for build")
     parser.add_argument("--web_app", action="store_true", help="use web app, send action dict")
     parser.add_argument(
         "--no_default_behavior",

@@ -236,6 +236,7 @@ class Build(Task):
         self.blockobj_memid = None
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
+        import pdb; pdb.set_trace()
 
         if self.is_destroy_schm:
             # is it destroying a whole block object? if so, save its tags
@@ -269,7 +270,6 @@ class Build(Task):
         # get blocks occupying build area and save state for undo()
         ox, oy, oz = self.origin
         sy, sz, sx, _ = self.schematic.shape
-        import pdb; pdb.set_trace()
         current = agent.get_blocks(ox, ox + sx - 1, oy, oy + sy - 1, oz, oz + sz - 1)
         self.old_blocks_list = npy_to_blocks_list(current, self.origin)
         if len(self.old_blocks_list) > 0:
@@ -594,40 +594,58 @@ class Destroy(Task):
         self.build_task = None
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
+        self.ref_obj = task_data['action_dict']['reference_object']['filters']['has_name']
 
     def step(self, agent):
         # wait certain amount of ticks until issuing next step
-        # while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-        #    pass
+        while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
+           pass
 
-        #origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
-        # flatten only coordinates into list
-        import pdb; pdb.set_trace()
-        coords_to_remove = [str(c) for (xyz, bm) in self.schematic for c in xyz]
+        # send command to remove specified blocks
+        # minecraft thresholds chat sizes, so stick to 20 at a time
+        batches = len(self.schematic) // 20
+        for i in range(batches):
+            batch = self.schematic[i*20:(i+1)*20]
+            coords_to_remove = [str(c) for (xyz, bm) in batch for c in xyz]
+            destroy_command = "/destroy " + " ".join(coords_to_remove)
+            agent.send_chat(destroy_command)
+        agent.send_chat("I have destroyed {}".format(self.ref_obj))
+        """
+        origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
 
-        destroy_command = "/destroy " + " ".join(coords_to_remove) 
-        self.agent.send_chat(destroy_command)
+        def to_destroy_schm(block_list):
+            #Convert idm of block list to negative
+            #For each block ((x, y, z), (b, m)), convert (b, m) to (-1, 0) indicating
+            #it should be digged or destroyed.
+            #Args:
+            #- block_list: a list of ((x,y,z), (id, meta))
+            #Returns:
+            #- a block list of ((x,y,z), (-1, 0))
 
-        #self.build_task = Build(
-        #    agent,
-        #    {
-        #        "blocks_list": destroy_schm,
-        #        "origin": origin,
-        #        "force": True,
-        #        "verbose": False,
-        #        "embed": True,
-        #        "dig_message": self.dig_message,
-        #        "is_destroy_schm": not self.dig_message,
-        #        "DIG_REACH": self.DIG_REACH,
-        #    },
-        #)
-        #agent.memory.task_stack_push(self.build_task, parent_memid=self.memid)
+            destroy_schm = [((x, y, z), (-1, 0)) for ((x, y, z), (b, m)) in block_list]
+            return destroy_schm
+
+        destroy_schm = to_destroy_schm(self.schematic)
+
+        self.build_task = Build(
+            agent,
+            {
+                "blocks_list": destroy_schm,
+                "origin": origin,
+                "force": True,
+                "verbose": False,
+                "embed": True,
+                "dig_message": self.dig_message,
+                "is_destroy_schm": not self.dig_message,
+                "DIG_REACH": self.DIG_REACH,
+            },
+        )
+        agent.memory.task_stack_push(self.build_task, parent_memid=self.memid)
+        """
         self.finished = True
 
     def undo(self, agent):
-        if self.build_task is not None:
-            self.build_task.undo(agent)
-
+        agent.send_chat("Sorry I don't know how to undo destroy actions :(")
 
 class Undo(Task):
     def __init__(self, agent, task_data):

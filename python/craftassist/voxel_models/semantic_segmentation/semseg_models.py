@@ -70,7 +70,7 @@ class SemSegNet(nn.Module):
         self.out = nn.Conv3d(hidden_dim, opts.num_classes, kernel_size=1)
         self.lsm = nn.LogSoftmax(dim=1)
 
-    def forward(self, x, T=.001):
+    def forward(self, x, T=1):
         # FIXME when pytorch is ready for this, embedding
         # backwards is soooooo slow
         # z = self.embedding(x)

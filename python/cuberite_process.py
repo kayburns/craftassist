@@ -138,7 +138,7 @@ if __name__ == "__main__":
     parser.add_argument("--add-plugin", action="append", default=[])
     args = parser.parse_args()
 
-    plugins = ["debug", "chatlog", "point_blocks", "destroy_blocks"] + args.add_plugin
+    plugins = ["debug", "chatlog", "point_blocks", "destroy_blocks", "build_blocks", "point_blocks_s"] + args.add_plugin
     if args.logging:
         plugins += ["logging"]
 

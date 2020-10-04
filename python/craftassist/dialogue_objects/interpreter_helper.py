@@ -92,7 +92,6 @@ def interpret_reference_object(
     ref_obj_dict
     """
 
-    import pdb; pdb.set_trace()
     F = d.get("filters")
     special = d.get("special_reference")
     # F can be empty...
@@ -337,6 +336,7 @@ def interpret_reference_location(interpreter, speaker, d):
         raise ErrorWithResponse("I don't know what you're referring to")
 
     mems = mems[:expected_num]
+    import pdb; pdb.set_trace()
     interpreter.memory.update_recent_entities(mems) #FLAG
     # TODO: are there any memories where get_pos() doesn't return something?
     return mems

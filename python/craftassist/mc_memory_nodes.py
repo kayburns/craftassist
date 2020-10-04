@@ -196,9 +196,9 @@ class InstSegNode(VoxelObjectNode):
 
     def __init__(self, memory, memid: str):
         super().__init__(memory, memid)
-        r = memory._db_read("SELECT x, y, z FROM VoxelObjects WHERE uuid=?", self.memid)
-        self.locs = r
-        self.blocks = {l: (0, 0) for l in self.locs}
+        r = memory._db_read("SELECT x, y, z, bid FROM VoxelObjects WHERE uuid=?", self.memid)
+        self.locs = [(xyzb[0], xyzb[1], xyzb[2]) for xyzb in r]
+        self.blocks = {(xyzb[0], xyzb[1], xyzb[2]): (xyzb[3], 0) for xyzb in r}
         tags = memory.get_triples(subj=self.memid, pred_text="has_tag")
         self.tags = []  # noqa: T484
         for tag in tags:

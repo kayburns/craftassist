@@ -8,6 +8,7 @@ class BaseAgent:
         self.opts = opts
         self.name = name or "bot"
         self.count = 0
+        self.load_specs = opts.load_specs
         self.init_memory()
         self.init_controller()
         self.init_perception()
