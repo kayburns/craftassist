@@ -585,6 +585,42 @@ class Fill(Task):
         if self.build_task is not None:
             self.build_task.undo(agent)
 
+class FastBuild(Task):
+    def __init__(self, agent, task_data):
+        super(FastBuild, self).__init__()
+        self.ref_blocks = task_data["ref_blocks"]
+        self.ref_node_memid = task_data["ref_node_memid"]
+        self.last_stepped_time = agent.memory.get_time()
+        self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
+
+    def step(self, agent):
+        import pdb; pdb.set_trace()
+        # wait certain amount of ticks until issuing next step
+        while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
+           pass
+        
+        if not agent.generator:
+            agent.send_chat("No generator defined. Is online learning enabled?")
+            pass
+
+        schematic = agent.generator.generate_build_proposal_wrapper(self.ref_blocks)
+
+        # send command to remove specified blocks
+        # minecraft thresholds chat sizes, so stick to 20 at a time
+        batches = len(schematic) // 20
+        for i in range(batches):
+            batch = schematic[i*20:(i+1)*20]
+            coords_to_remove = [str(c) for xyz in batch for c in xyz]
+            import pdb; pdb.set_trace()
+            destroy_command = "/build 70 " + " ".join(coords_to_remove)
+            agent.send_chat(destroy_command)
+        agent.send_chat("I have built {}".format(self.ref_obj))
+        self.finished = True
+
+    def undo(self, agent):
+        agent.send_chat("Sorry I don't know how to undo fast build actions :(")
+
+
 
 class Destroy(Task):
     def __init__(self, agent, task_data):

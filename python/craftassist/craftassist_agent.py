@@ -20,6 +20,7 @@ from multiprocessing import set_start_method
 
 import mc_memory
 from dialogue_objects import GetMemoryHandler, PutMemoryHandler, Interpreter
+from threedhouses.src import build_proposal as build_proposal
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
@@ -63,6 +64,10 @@ class CraftAssistAgent(LocoMCAgent):
         # List of tuple (XYZ, radius), each defines a cube
         self.areas_to_perceive = []
         self.add_self_memory_node()
+        if opts.learn_online:
+            self.init_online_learning_modules()
+        else:
+            self.generator = None
 
     def init_memory(self):
         self.memory = mc_memory.MCAgentMemory(
@@ -95,6 +100,9 @@ class CraftAssistAgent(LocoMCAgent):
         dialogue_object_classes["get_memory"] = GetMemoryHandler
         dialogue_object_classes["put_memory"] = PutMemoryHandler
         self.dialogue_manager = NSPDialogueManager(self, dialogue_object_classes, self.opts)
+
+    def init_online_learning_modules(self):
+        self.generator = build_proposal.GeneratorWrapper()
 
     def perceive(self, force=False):
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
@@ -344,6 +352,7 @@ if __name__ == "__main__":
     parser.add_argument("--verbose", "-v", action="store_true", help="Debug logging")
     parser.add_argument("--load_specs", "-load", action="store_true", help="Will load Mincraft specs for build")
     parser.add_argument("--web_app", action="store_true", help="use web app, send action dict")
+    parser.add_argument("--learn_online", action="store_true", help="allow agent to learn from interactions online")
     parser.add_argument(
         "--no_default_behavior",
         action="store_true",

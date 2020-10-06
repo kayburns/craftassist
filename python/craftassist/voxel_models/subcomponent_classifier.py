@@ -82,7 +82,6 @@ class SubcomponentClassifierWrapper:
                         label2blocks[l] = [b]
 
             #self.agent.send_chat("Here is what I think is in the scene.")
-            #import pdb; pdb.set_trace() # are the blocks right?
             print(label2blocks.keys())
             for l, blocks in label2blocks.items():
                 ## if the blocks are contaminated we just ignore

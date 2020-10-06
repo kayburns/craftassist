@@ -220,9 +220,26 @@ class Interpreter(DialogueObject):
         return None, None
 
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
-        # Get the segment to build
-        import pdb; pdb.set_trace()
-        if "reference_object" in d:
+        # determine if build action is on house
+        location_d = d.get("location", SPEAKERLOOK)
+        location_name = location_d['reference_object']['filters']['has_name']
+
+        # invoke conditional model
+        if location_name == 'house': # right now, only form for online learning
+
+            mems = interpret_reference_location(self, speaker, location_d)
+            task_data = {
+                "ref_blocks": mems[0].blocks,
+                "ref_node_memid": mems[0].memid,
+                "location_dict": location_d
+            }
+            self.append_new_task(tasks.FastBuild, task_data)
+            logging.info("Added 1 FastBuild task to stack")
+            self.finished = True
+            return None, None
+
+        # OR, get the segment to build
+        elif "reference_object" in d:
             # handle copy
             repeat = get_repeat_num(d)
             objs = interpret_reference_object(
@@ -251,12 +268,10 @@ class Interpreter(DialogueObject):
             )
 
         # Get the locations to build
-        location_d = d.get("location", SPEAKERLOOK)
         mems = interpret_reference_location(self, speaker, location_d)
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
-        build_proposal.print_test()
         interprets_with_offsets = [
             (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
         ]
