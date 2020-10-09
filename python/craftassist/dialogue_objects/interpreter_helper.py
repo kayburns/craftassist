@@ -9,7 +9,11 @@ import random
 import re
 from typing import cast, List, Tuple, Union, Optional, Dict
 
-from base_agent.dialogue_objects import ConfirmReferenceObject, SPEAKERLOOK
+from base_agent.dialogue_objects import (
+    ConfirmReferenceObject,
+    SelectReferenceObject,
+    SPEAKERLOOK
+)
 import block_data
 import minecraft_specs
 import heuristic_perception
@@ -143,12 +147,14 @@ def interpret_reference_object(
             objects = object_looked_at(
                 interpreter.agent, confirm_candidates, player_struct, limit=1
             )
-            if len(objects) == 0:
-                raise ErrorWithResponse("I don't know what you're referring to")
-            _, mem = objects[0]
-            interpreter.provisional["object_mem"] = mem
-            interpreter.provisional["F"] = F
-            interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
+            if len(objects) == 0 or True: # FLAG: for now go through all candidates
+                mems = [m[1] for m in confirm_candidates]
+                interpreter.dialogue_stack.append_new(SelectReferenceObject, mems)
+            else:
+                _, mem = objects[0]
+                interpreter.provisional["object_mem"] = mem
+                interpreter.provisional["F"] = F
+                interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
             raise NextDialogueStep()
 
     else:

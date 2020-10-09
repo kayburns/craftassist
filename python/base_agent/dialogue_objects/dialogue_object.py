@@ -273,10 +273,10 @@ class ConfirmTask(DialogueObject):
 """This class represents a sub-type of the DialogueObject to confirm if the
 reference object is correct."""
 
-
 class ConfirmReferenceObject(DialogueObject):
     def __init__(self, reference_object, **kwargs):
         super().__init__(**kwargs)
+        import pdb; pdb.set_trace()
         r = reference_object
         if hasattr(r, "get_point_at_target"):
             self.bounds = r.get_point_at_target()
@@ -296,6 +296,45 @@ class ConfirmReferenceObject(DialogueObject):
             self.agent.point_at(self.bounds)
             self.dialogue_stack.append_new(AwaitResponse)
             self.pointed = True
+            return "", None
+        self.finished = True
+        if len(self.progeny_data) == 0:
+            output_data = None
+        else:
+            if hasattr(self.progeny_data[-1]["response"], "chat_text"):
+                response_str = self.progeny_data[-1]["response"].chat_text
+            else:
+                response_str = "UNK"
+            if response_str in MAP_YES:
+                output_data = {"response": "yes"}
+            elif response_str in MAP_NO:
+                output_data = {"response": "no"}
+            else:
+                output_data = {"response": "unkown"}
+        return "", output_data
+
+class SelectReferenceObject(DialogueObject):
+    def __init__(self, reference_objects, **kwargs):
+        super().__init__(**kwargs)
+        r_list = reference_objects
+        self.locs_list = [r.locs for r in r_list]
+        self.pointed = False
+        self.asked = False
+
+    def step(self):
+        if not self.asked:
+            request_string = "I don't know what you are referring to, so I am"\
+                " going to point at several objects. Tell me which one is"\
+                " correct."
+            self.dialogue_stack.append_new(Say, request_string)
+            self.asked = True
+            return "", None
+        if not self.pointed:
+            for i, locs in enumerate(self.locs_list):
+                self.agent.point_s_at(locs)
+                self.agent.send_chat("Candidate {}".format(i))
+            self.pointed = True
+            self.dialogue_stack.append_new(AwaitResponse)
             return "", None
         self.finished = True
         if len(self.progeny_data) == 0:

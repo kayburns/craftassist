@@ -1,0 +1,12 @@
+water,588
+bedrock,628
+flowing lava,634
+oak sapling,839
+dirt,861
+flowing water,867
+oak planks,972
+cobblestone,1015
+grass,1200
+stone,1611
+lava,1778
+air,1845

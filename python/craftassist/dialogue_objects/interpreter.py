@@ -222,7 +222,10 @@ class Interpreter(DialogueObject):
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
         # determine if build action is on house
         location_d = d.get("location", SPEAKERLOOK)
-        location_name = location_d['reference_object']['filters']['has_name']
+        if 'reference_object' in location_d:
+            location_name = location_d['reference_object']['filters']['has_name']
+        else:
+            location_name = None
 
         # invoke conditional model
         if location_name == 'house': # right now, only form for online learning

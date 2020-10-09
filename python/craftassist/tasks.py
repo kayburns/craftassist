@@ -607,13 +607,15 @@ class FastBuild(Task):
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
-        batches = len(schematic) // 20
+        if len(schematic) < 20:
+            batches = 1
+        else:
+            batches = len(schematic) // 20
         for i in range(batches):
             batch = schematic[i*20:(i+1)*20]
             coords_to_remove = [str(c) for xyz in batch for c in xyz]
-            import pdb; pdb.set_trace()
-            destroy_command = "/build 70 " + " ".join(coords_to_remove)
-            agent.send_chat(destroy_command)
+            build_command = "/build 20 " + " ".join(coords_to_remove)
+            agent.send_chat(build_command)
         agent.send_chat("I have built {}".format(self.ref_obj))
         self.finished = True
 

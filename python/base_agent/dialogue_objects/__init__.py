@@ -13,6 +13,7 @@ from dialogue_object import (
     GetReward,
     ConfirmTask,
     ConfirmReferenceObject,
+    SelectReferenceObject,
     Say,
 )
 
@@ -35,6 +36,7 @@ __all__ = [
     GetReward,
     ConfirmTask,
     ConfirmReferenceObject,
+    SelectReferenceObject,
     Say,
     SPEAKERLOOK,
     SPEAKERPOS,

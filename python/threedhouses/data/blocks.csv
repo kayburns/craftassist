@@ -1,0 +1,422 @@
+id1,id2,name
+0,0,air
+1,0,stone
+1,1,granite
+1,2,polished granite
+1,3,diorite
+1,4,polished diorite
+1,5,andesite
+1,6,polished andesite
+2,0,grass
+3,0,dirt
+3,1,grassless dirt
+3,2,podzol
+4,0,cobblestone
+5,0,oak planks
+5,1,spruce planks
+5,2,birch planks
+5,3,jungle planks
+5,4,acacia planks
+5,5,dark oak planks
+6,0,oak sapling
+6,1,spruce sapling
+6,2,birch sapling
+6,3,jungle sapling
+6,4,acacia sapling
+6,5,dark oak sapling
+7,0,bedrock
+8,0,flowing water
+9,0,water
+10,0,flowing lava
+11,0,lava
+12,0,sand
+12,1,red sand
+13,0,gravel
+14,0,gold ore
+15,0,iron ore
+16,0,coal ore
+17,0,oak wood
+17,1,spruce wood
+17,2,birch wood
+17,3,jungle wood
+17,4,oak wood 
+17,5,spruce wood
+17,6,birch wood
+17,7,jungle wood
+17,8,oak wood
+17,9,spruce wood
+17,10,birch wood
+17,11,jungle wood
+17,12,oak wood 
+17,13,spruce wood 
+17,14,birch wood
+17,15,jungle wood
+18,0,oak leaves
+18,1,spruce leaves
+18,2,birch leaves
+18,3,jungle leaves
+19,0,sponge
+20,0,glass
+21,0,lapis lazuli ore
+22,0,lapis lazuli block
+23,0,dispenser
+24,0,sandstone
+24,1,chiseled sandstone
+24,2,smooth sandstone
+25,0,note block
+26,0,bed
+27,0,powered rail
+28,0,detector rail
+29,0,sticky piston
+30,0,web
+31,0,dead shrub
+31,1,grass
+31,2,fern
+32,0,shrub
+33,0,piston
+34,0,piston head
+35,0,wool
+35,1,orange wool
+35,2,magenta wool
+35,3,light blue wool
+35,4,yellow wool
+35,5,lime wool
+35,6,pink wool
+35,7,gray wool
+35,8,light gray wool
+35,9,cyan wool
+35,10,purple wool
+35,11,blue wool
+35,12,brown wool
+35,13,green wool
+35,14,red wool
+35,15,black wool
+36,0,piston extension
+37,0,dandelion
+38,0,poppy
+38,1,blue orchid
+38,2,allium
+38,3,azure bluet
+38,4,red tulip
+38,5,orange tulip
+38,6,white tulip
+38,7,pink tulip
+38,8,oxeye daisy
+39,0,brown mushroom
+40,0,red mushroom
+41,0,gold block
+42,0,iron block
+43,0,double stone slab
+43,1,double sandstone slab
+43,2,double wooden slab
+43,3,double cobblestone slab
+43,4,double brick slab
+43,5,double stone brick slab
+43,6,double nether brick slab
+43,7,double quartz slab
+44,0,stone slab
+44,1,sandstone slab
+44,2,wooden slab
+44,3,cobblestone slab
+44,4,brick slab
+44,5,stone brick slab
+44,6,nether brick slab
+44,7,quartz slab
+45,0,brick block
+46,0,tnt
+47,0,bookshelf
+48,0,mossy cobblestone
+49,0,obsidian
+50,0,torch
+51,0,fire
+52,0,mob spawner
+53,0,oak stairs
+54,0,chest
+55,0,redstone wire
+56,0,diamond ore
+57,0,diamond block
+58,0,crafting table
+59,0,wheat
+60,0,farmland
+61,0,furnace
+62,0,lit furnace
+63,0,standing sign
+64,0,wooden door
+65,0,ladder
+66,0,rail
+67,0,cobblestone stairs
+68,0,wall sign
+69,0,lever
+70,0,stone pressure plate
+71,0,iron door
+72,0,wooden pressure plate
+73,0,redstone ore
+74,0,lit redstone ore
+75,0,unlit redstone torch
+76,0,redstone torch
+77,0,stone button
+78,0,snow layer
+79,0,ice
+80,0,snow
+81,0,cactus
+82,0,clay
+83,0,sugar cane
+84,0,jukebox
+85,0,fence
+86,0,pumpkin
+87,0,netherrack
+88,0,soul sand
+89,0,glowstone
+90,0,portal
+91,0,jack-o-lantern
+92,0,cake
+93,0,unpowered repeater
+94,0,powered repeater
+95,0,white stained glass
+95,1,orange stained glass
+95,2,magenta stained glass
+95,3,light blue stained glass
+95,4,yellow stained glass
+95,5,lime stained glass
+95,6,pink stained glass
+95,7,gray stained glass
+95,8,light gray stained glass
+95,9,cyan stained glass
+95,10,purple stained glass
+95,11,blue stained glass
+95,12,brown stained glass
+95,13,green stained glass
+95,14,red stained glass
+95,15,black stained glass
+96,0,trapdoor
+97,0,stone monster egg
+97,1,cobblestone monster egg
+97,2,stone brick monster egg
+97,3,mossy stone brick monster egg
+97,4,cracked stone brick monster egg
+97,5,chiseled stone brick monster egg
+98,0,stone brick
+98,1,mossy stone brick
+98,2,cracked stone brick
+98,3,chiseled stone brick
+99,0,red mushroom block
+100,0,brown mushroom block
+101,0,iron bars
+102,0,glass pane
+103,0,melon block
+104,0,pumpkin stem
+105,0,melon stem
+106,0,vines
+107,0,fence gate
+108,0,brick stairs
+109,0,stone brick stairs
+110,0,mycelium
+111,0,lily pad
+112,0,nether brick
+113,0,nether brick fence
+114,0,nether brick stairs
+115,0,nether wart
+116,0,enchantment table
+117,0,brewing stand
+118,0,cauldron
+119,0,end portal
+120,0,end portal frame
+121,0,end stone
+122,0,dragon egg
+123,0,redstone lamp
+124,0,lit redstone lamp
+125,0,double oak slab
+125,1,double spruce slab
+125,2,double birch slab
+125,3,double jungle slab
+125,4,double acacia slab
+125,5,double dark oak slab
+126,0,oak slab
+126,1,spruce slab
+126,2,birch slab
+126,3,jungle slab
+126,4,acacia slab
+126,5,dark oak slab
+127,0,cocoa
+128,0,sandstone stairs
+129,0,emerald ore
+130,0,ender chest
+131,0,tripwire hook
+132,0,tripwire
+133,0,emerald block
+134,0,spruce stairs
+135,0,birch stairs
+136,0,jungle stairs
+137,0,command block
+138,0,beacon
+139,0,cobblestone wall
+140,0,flower pot
+141,0,carrots
+142,0,potatoes
+143,0,wooden button
+144,0,skull
+145,0,anvil
+146,0,trapped chest
+147,0,light weighted pressure plate
+148,0,heavy weighted pressure plate
+149,0,unpowered redstone comparator
+150,0,powered redstone comparator
+151,0,daylight detector
+152,0,redstone block
+153,0,nether quartz ore
+154,0,hopper
+155,0,quartz block
+155,1,chiseled quartz block
+155,2,pillar quartz block
+156,0,quartz stairs
+157,0,activator rail
+158,0,dropper
+159,0,white stained clay
+159,1,orange stained clay
+159,2,magenta stained clay
+159,3,light blue stained clay
+159,4,yellow stained clay
+159,5,lime stained clay
+159,6,pink stained clay
+159,7,gray stained clay
+159,8,light gray stained clay
+159,9,cyan stained clay
+159,10,purple stained clay
+159,11,blue stained clay
+159,12,brown stained clay
+159,13,green stained clay
+159,14,red stained clay
+159,15,black stained clay
+160,0,white stained glass pane
+160,1,orange stained glass pane
+160,2,magenta stained glass pane
+160,3,light blue stained glass pane
+160,4,yellow stained glass pane
+160,5,lime stained glass pane
+160,6,pink stained glass pane
+160,7,gray stained glass pane
+160,8,light gray stained glass pane
+160,9,cyan stained glass pane
+160,10,purple stained glass pane
+160,11,blue stained glass pane
+160,12,brown stained glass pane
+160,13,green stained glass pane
+160,14,red stained glass pane
+160,15,black stained glass pane
+161,0,acacia leaves
+161,1,dark oak leaves
+162,0,acacia wood
+162,1,dark oak wood
+162,2,acacia wood
+162,3,dark oak wood
+162,4,acacia wood
+162,5,dark oak wood
+162,6,acacia wood
+162,7,dark oak wood
+162,8,acacia wood
+162,9,dark oak wood
+162,10,acacia wood
+162,11,dark oak wood
+162,12,acacia wood
+162,13,dark oak wood
+162,14,acacia wood
+162,15,dark oak wood
+163,0,acacia wood stairs
+164,0,dark oak wood stairs
+165,0,slime block
+166,0,barrier
+167,0,iron trapdoor
+168,0,prismarine
+169,0,sea lantern
+170,0,hay bale
+171,0,white carpet
+171,1,orange carpet
+171,2,magenta carpet
+171,3,light blue carpet
+171,4,yellow carpet
+171,5,lime carpet
+171,6,pink carpet
+171,7,gray carpet
+171,8,light gray carpet
+171,9,cyan carpet
+171,10,purple carpet
+171,11,blue carpet
+171,12,brown carpet
+171,13,green carpet
+171,14,red carpet
+171,15,black carpet
+172,0,hardened clay
+173,0,coal block
+174,0,packed ice
+175,0,sunflower
+175,1,lilac
+175,2,double tallgrass
+175,3,large fern
+175,4,rose bush
+175,5,peony
+179,0,red sandstone
+180,0,red sandstone stairs
+181,0,double red sandstone slab
+182,0,red sandstone slab
+183,0,spruce fence gate
+184,0,birch fence gate
+185,0,jungle fence gate
+186,0,dark oak fence gate
+187,0,acacia fence gate
+188,0,spruce fence
+189,0,birch fence
+190,0,jungle fence
+191,0,dark oak fence
+192,0,acacia fence
+193,0,spruce door block
+194,0,birch door block
+195,0,jungle door block
+196,0,acacia door block
+197,0,dark oak door block
+198,0,end rod
+199,0,chorus plant
+200,0,chorus flower
+201,0,purpur block
+202,0,purpur pillar
+203,0,purpur stairs
+204,0,purpur double slab
+205,0,purpur slab
+206,0,end stone bricks
+207,0,beetroot block
+213,0,magma block
+214,0,nether wart block
+215,0,red nether brick
+216,0,bone block
+218,0,observer
+219,0,white shulker box
+220,0,orange shulker box
+221,0,magenta shulker box
+222,0,light blue shulker box
+225,0,pink shulker box
+226,0,gray shulker box
+227,0,light gray shulker box
+228,0,cyan shulker box
+229,0,purple shulker box
+230,0,blue shulker box
+231,0,brown shulker box
+232,0,green shulker box
+233,0,red shulker box
+234,0,black shulker box
+235,0,white glazed terracotta
+236,0,orange glazed terracotta
+237,0,magenta glazed terracotta
+238,0,light blue glazed terracotta
+239,0,yellow glazed terracotta
+240,0,lime glazed terracotta
+241,0,pink glazed terracotta
+242,0,gray glazed terracotta
+243,0,light gray glazed terracotta
+244,0,cyan glazed terracotta
+245,0,purple glazed terracotta
+246,0,blue glazed terracotta
+247,0,brown glazed terracotta
+248,0,green glazed terracotta
+249,0,red glazed terracotta
+250,0,black glazed terracotta
+251,0,white concrete
+252,0,white concrete powder
