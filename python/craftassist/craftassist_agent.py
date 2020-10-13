@@ -221,14 +221,11 @@ class CraftAssistAgent(LocoMCAgent):
         if sleep:
             time.sleep(sleep)
 
-    def point_s_at(self, locs, sleep=2):
+    def point_s_at(self, locs, sleep=5):
         """Bot pointing.
 
         Args:
-            target: list of x1 y1 z1 x2 y2 z2, where:
-                    x1 <= x2,
-                    y1 <= y2,
-                    z1 <= z2.
+            target: list of (x, y, z) tuples
         """
         if len(locs) < 20:
             batches = 1
@@ -239,13 +236,13 @@ class CraftAssistAgent(LocoMCAgent):
             coords_to_point = [str(c) for xyz in batch for c in xyz]
             point_command = "/point_s " + " ".join(coords_to_point)
             self.send_chat(point_command)
+        if sleep:
+            time.sleep(sleep)
         #self.point_targets.append((target, time.time())) #FLAG
         # sleep before the bot can take any actions
         # otherwise there might be bugs since the object is flashing
         # deal with this in the task...
-        if sleep:
-            time.sleep(sleep)
-
+        
     def relative_head_pitch(self, angle):
         # warning: pitch is flipped!
         new_pitch = self.get_player().look.pitch - angle

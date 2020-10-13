@@ -11,7 +11,7 @@ from typing import cast, List, Tuple, Union, Optional, Dict
 
 from base_agent.dialogue_objects import (
     ConfirmReferenceObject,
-    SelectReferenceObject,
+    AdvancedConfirmReferenceObject,
     SPEAKERLOOK
 )
 import block_data
@@ -123,6 +123,7 @@ def interpret_reference_object(
         if not_location:
             tags.append("_not_location")
         # TODO Add ignore_player maybe?
+        import pdb; pdb.set_trace()
         candidates = get_reference_objects(interpreter, *tags)
         if len(candidates) > 0:
             r = filter_by_sublocation(
@@ -149,7 +150,8 @@ def interpret_reference_object(
             )
             if len(objects) == 0 or True: # FLAG: for now go through all candidates
                 mems = [m[1] for m in confirm_candidates]
-                interpreter.dialogue_stack.append_new(SelectReferenceObject, mems)
+                interpreter.dialogue_stack.append_new(
+                    AdvancedConfirmReferenceObject, mems)
             else:
                 _, mem = objects[0]
                 interpreter.provisional["object_mem"] = mem

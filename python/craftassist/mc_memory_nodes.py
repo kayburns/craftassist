@@ -143,7 +143,7 @@ class BlockObjectNode(VoxelObjectNode):
 class InstSegNode(VoxelObjectNode):
     """ this is a voxel object that represents a region of space, and is considered ephemeral"""
 
-    TABLE_COLUMNS = ["uuid", "x", "y", "z", "bid", "meta" "ref_type"]
+    TABLE_COLUMNS = ["uuid", "x", "y", "z", "bid", "meta", "ref_type"]
     # FIXME this shouldn't be used, but is being used in e.g. get_recent_entities
     TABLE = "inst_seg"
     NODE_TYPE = "InstSeg"

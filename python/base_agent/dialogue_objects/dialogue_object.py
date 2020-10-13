@@ -313,7 +313,7 @@ class ConfirmReferenceObject(DialogueObject):
                 output_data = {"response": "unkown"}
         return "", output_data
 
-class SelectReferenceObject(DialogueObject):
+class AdvancedConfirmReferenceObject(DialogueObject):
     def __init__(self, reference_objects, **kwargs):
         super().__init__(**kwargs)
         r_list = reference_objects
@@ -323,9 +323,9 @@ class SelectReferenceObject(DialogueObject):
 
     def step(self):
         if not self.asked:
-            request_string = "I don't know what you are referring to, so I am"\
-                " going to point at several objects. Tell me which one is"\
-                " correct."
+            request_string = "I don't know what you are referring to. Can you "\
+                "help me locate it using one of the objects I know? Here is "\
+                "what I see."
             self.dialogue_stack.append_new(Say, request_string)
             self.asked = True
             return "", None

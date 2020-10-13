@@ -6,6 +6,10 @@ import os
 import gc
 import glob
 import pickle as pkl
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 from threedhouses.src.model import *
 from threedhouses.src.datasets import Craft3DDatasetAnno
 
@@ -35,6 +39,17 @@ def load_pretrained_GE(save_file_path, G, E):
         E.load_state_dict(torch.load(pretrained_file_path_E))
 
     return G, E
+
+def plot_house(pth, house):
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    ax.scatter(*house.nonzero())
+    ax.set_xlim(0, 64)
+    ax.set_ylim(0, 64)
+    ax.set_zlim(0, 64)
+    plt.savefig(pth)
+    plt.clf()
+ 
 
 class TransformationBank():
 
@@ -73,7 +88,7 @@ class GeneratorWrapper():
 
     def generate_build_proposal(self, X_pre):
 
-        ref_post, ref_pre = self.transformation_bank[0]
+        ref_pre, ref_post = self.transformation_bank[0]
 
         X_pre = torch.from_numpy(X_pre).float()
         zref_pre, zref_post = self.E(ref_pre), self.E(ref_post)

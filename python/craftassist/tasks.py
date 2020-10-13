@@ -236,7 +236,6 @@ class Build(Task):
         self.blockobj_memid = None
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
-        import pdb; pdb.set_trace()
 
         if self.is_destroy_schm:
             # is it destroying a whole block object? if so, save its tags
@@ -594,7 +593,6 @@ class FastBuild(Task):
         self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
 
     def step(self, agent):
-        import pdb; pdb.set_trace()
         # wait certain amount of ticks until issuing next step
         while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
            pass

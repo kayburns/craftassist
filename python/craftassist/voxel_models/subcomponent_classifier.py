@@ -27,7 +27,9 @@ class SubcomponentClassifierWrapper:
         self.memory = self.agent.memory
         self.perceive_freq = perceive_freq
         if model_path is not None:
-            self.subcomponent_classifier = SubComponentClassifier(voxel_model_path=model_path, vocab_path=vocab_path)
+            self.subcomponent_classifier = SubComponentClassifier(
+                voxel_model_path=model_path, vocab_path=vocab_path,
+                temps=[.001, 1, 100])
             self.subcomponent_classifier.start()
         else:
             self.subcomponent_classifier = None
@@ -47,54 +49,49 @@ class SubcomponentClassifierWrapper:
                 to_label.append(obj)
         # add all blocks near the agent
         for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
-            points = [o[0] for o in obj]
-            min_max = min(points) + max(points)
-            #self.agent.point_at(min_max)
             to_label.append(obj)
 
         for obj in to_label:
+            #points = [o[0] for o in obj]
+            #self.agent.point_s_at(points)
             self.subcomponent_classifier.block_objs_q.put(obj)
 
         # everytime we try to retrieve as many recognition results as possible
         while not self.subcomponent_classifier.loc2labels_q.empty():
-            loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
-            loc2ids = dict(obj)
-            label2blocks = {}
+            import pdb; pdb.set_trace()
+            temp2loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
 
-            def contaminated(blocks):
-                """
-                Check if blocks are still consistent with the current world
-                """
-                mx, Mx, my, My, mz, Mz = get_bounds(blocks)
-                yzxb = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
-                for b, _ in blocks:
-                    x, y, z = b
-                    if loc2ids[b][0] != yzxb[y - my, z - mz, x - mx, 0]:
-                        return True
-                return False
+            for temp, loc2labels in temp2loc2labels.items():
+                loc2ids = dict(obj)
+                label2blocks = {}
 
-            for loc, labels in loc2labels.items():
-                b = (loc, loc2ids[loc])
-                for l in labels:
-                    if l in label2blocks:
-                        label2blocks[l].append(b)
-                    else:
-                        label2blocks[l] = [b]
+                def contaminated(blocks):
+                    """
+                    Check if blocks are still consistent with the current world
+                    """
+                    mx, Mx, my, My, mz, Mz = get_bounds(blocks)
+                    yzxb = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
+                    for b, _ in blocks:
+                        x, y, z = b
+                        if loc2ids[b][0] != yzxb[y - my, z - mz, x - mx, 0]:
+                            return True
+                    return False
 
-            #self.agent.send_chat("Here is what I think is in the scene.")
-            print(label2blocks.keys())
-            for l, blocks in label2blocks.items():
-                ## if the blocks are contaminated we just ignore
-                if not contaminated(blocks):
-                    #locs = [loc for loc, idm in blocks]
-                    #self.agent.send_chat("This is a %s" %l)
-                    #min_xyz = min(locs)
-                    #max_xyz = max(locs)
-                    #min_max = min_xyz + max(min_xyz, max_xyz)
-                    ##x,y,z = zip(*locs)
-                    #min_max = [min(x), min(y), min(z), max(x), max(y), max(z)]
-                    #self.agent.point_at(min_max, sleep=4)
-                    InstSegNode.create(self.memory, blocks, [l])
+                for loc, labels in loc2labels.items():
+                    b = (loc, loc2ids[loc])
+                    for l in labels:
+                        if l in label2blocks:
+                            label2blocks[l].append(b)
+                        else:
+                            label2blocks[l] = [b]
+
+                #self.agent.send_chat("Here is what I think is in the scene.")
+                self.agent.send_chat(str(label2blocks.keys()))
+                for l, blocks in label2blocks.items():
+                    ## if the blocks are contaminated we just ignore
+                    if not contaminated(blocks):
+                        #locs = [loc for loc, idm in blocks]
+                        InstSegNode.create(self.memory, blocks, [l, 'semseg'])
 
 
 class SubComponentClassifier(Process):
@@ -102,7 +99,7 @@ class SubComponentClassifier(Process):
     A classifier class that calls a voxel model to output object tags.
     """
 
-    def __init__(self, voxel_model_path=None, vocab_path=None):
+    def __init__(self, voxel_model_path=None, vocab_path=None, temps=[1], true_temp=1):
         super().__init__()
 
         if voxel_model_path is not None:
@@ -115,6 +112,8 @@ class SubComponentClassifier(Process):
 
         self.block_objs_q = Queue()  # store block objects to be recognized
         self.loc2labels_q = Queue()  # store loc2labels dicts to be retrieved by the agent
+        self.temps = temps
+        self.true_temp = true_temp
         self.daemon = True
 
     def run(self):
@@ -123,12 +122,23 @@ class SubComponentClassifier(Process):
         """
         while True:  # run forever
             tb = self.block_objs_q.get(block=True, timeout=None)
-            loc2labels = self._watch_single_object(tb)
-            for k in loc2labels.keys():
-                loc2labels[k].append("house")
-            self.loc2labels_q.put((loc2labels, tb))
+            # FLAG: may need to change for time
+            temp2loc2labels = {}
+            for temp in self.temps:
+                loc2labels = self._watch_single_object(tb, t=temp)
+                if temp == self.true_temp:
+                    for k in loc2labels.keys():
+                        loc2labels[k].append("house")
+                else:
+                    for k in loc2labels.keys():
+                        reformatted_labels = ['t{}_'.format(temp)+label
+                                                for label in loc2labels[k]]
+                        loc2labels[k] = reformatted_labels
+                temp2loc2labels[temp] = loc2labels
 
-    def _watch_single_object(self, tuple_blocks):
+            self.loc2labels_q.put((temp2loc2labels, tb))
+
+    def _watch_single_object(self, tuple_blocks, t=1):
         """
         Input: a list of tuples, where each tuple is ((x, y, z), [bid, mid]). This list
                represents a block object.
@@ -149,7 +159,7 @@ class SubComponentClassifier(Process):
 
         np_blocks, offsets = bu.blocks_list_to_npy(blocks=tuple_blocks, xyz=True)
 
-        pred = self.model.segment_object(np_blocks)
+        pred = self.model.segment_object(np_blocks, T=t)
 
         # convert prediction results to string tags
         return dict([(apply_offsets(loc, offsets), get_tags([p])) for loc, p in pred.items()])
