@@ -6,7 +6,7 @@ import logging
 from multiprocessing import Queue, Process
 import sys
 import os
-from mc_memory_nodes import InstSegNode
+from mc_memory_nodes import InstSegNode, PropSegNode
 from heuristic_perception import all_nearby_objects
 from shapes import get_bounds
 
@@ -26,10 +26,11 @@ class SubcomponentClassifierWrapper:
         self.agent = agent
         self.memory = self.agent.memory
         self.perceive_freq = perceive_freq
+        self.true_temp = 1
         if model_path is not None:
             self.subcomponent_classifier = SubComponentClassifier(
                 voxel_model_path=model_path, vocab_path=vocab_path,
-                temps=[.001, 1, 100])
+                temps=[.001, 1], true_temp=self.true_temp)
             self.subcomponent_classifier.start()
         else:
             self.subcomponent_classifier = None
@@ -58,7 +59,6 @@ class SubcomponentClassifierWrapper:
 
         # everytime we try to retrieve as many recognition results as possible
         while not self.subcomponent_classifier.loc2labels_q.empty():
-            import pdb; pdb.set_trace()
             temp2loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
 
             for temp, loc2labels in temp2loc2labels.items():
@@ -86,12 +86,17 @@ class SubcomponentClassifierWrapper:
                             label2blocks[l] = [b]
 
                 #self.agent.send_chat("Here is what I think is in the scene.")
-                self.agent.send_chat(str(label2blocks.keys()))
                 for l, blocks in label2blocks.items():
                     ## if the blocks are contaminated we just ignore
                     if not contaminated(blocks):
                         #locs = [loc for loc, idm in blocks]
-                        InstSegNode.create(self.memory, blocks, [l, 'semseg'])
+                        if temp == self.true_temp:
+                            InstSegNode.create(
+                                self.memory, blocks, [l, 'semseg'])
+                        else:
+                            PropSegNode.create(
+                                self.memory, blocks, "t{}_seg".format(temp),
+                                [l, 'semseg'])
 
 
 class SubComponentClassifier(Process):

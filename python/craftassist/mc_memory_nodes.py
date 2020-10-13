@@ -208,6 +208,75 @@ class InstSegNode(VoxelObjectNode):
     def __repr__(self):
         return "<InstSeg Node @ {} with tags {} >".format(self.locs, self.tags)
 
+class PropSegNode(VoxelObjectNode):
+    """ this is a voxel object that represents a region of space, and is considered ephemeral"""
+
+    TABLE_COLUMNS = ["uuid", "x", "y", "z", "bid", "meta", "ref_type"]
+    # FIXME this shouldn't be used, but is being used in e.g. get_recent_entities
+    TABLE = "prop_seg"
+    NODE_TYPE = "InstSeg"
+
+    @classmethod
+    def create(cls, memory, blocks, ref_type, tags=[]) -> str:
+        inst_memids = {}
+        if len(blocks[0]) == 2: # hack to store block type for sem seg
+            locs = [loc for loc, idm in blocks]
+        else:
+            locs = blocks
+        for xyz in locs:
+            query = 'SELECT uuid from VoxelObjects WHERE ref_type="{}" AND x=?'\
+                    'AND y=? AND z=?'.format(ref_type)
+            m = memory._db_read(
+                query,
+                *xyz
+            )
+            if len(m) > 0:
+                for memid in m:
+                    inst_memids[memid[0]] = True
+        # FIXME just remember the locs in the first pass
+        for m in inst_memids.keys():
+            olocs = memory._db_read("SELECT x, y, z from VoxelObjects WHERE uuid=?", m)
+            # TODO maybe make an archive?
+            if len(set(olocs) - set(locs)) == 0:
+                memory._db_write("DELETE FROM Memories WHERE uuid=?", m)
+
+        memid = cls.new(memory)
+        loc = np.mean(locs, axis=0)
+        # TODO check/assert this isn't there...
+        cmd = "INSERT INTO ReferenceObjects (uuid, x, y, z, ref_type) VALUES ( ?, ?, ?, ?, ?)"
+        memory._db_write(cmd, memid, loc[0], loc[1], loc[2], ref_type)
+        if len(blocks[0]) == 2: 
+            for loc, idm in blocks:
+                cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, bid, meta, ref_type) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
+                memory._db_write(cmd, memid, loc[0], loc[1], loc[2], idm[0], idm[1], ref_type)
+        else:
+            for loc in locs:
+                cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, bid, meta, ref_type) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
+                memory._db_write(cmd, memid, loc[0], loc[1], loc[2], 0, 0, ref_type)
+        memory.tag(memid, "_voxel_object")
+        memory.tag(memid, "_{}".format(ref_type))
+        memory.tag(memid, "_destructible")
+        # this is a hack until memory_filters does "not"
+        memory.tag(memid, "_not_location")
+        for tag in tags:
+            memory.tag(memid, tag)
+        return memid
+
+    def __init__(self, memory, memid: str):
+        super().__init__(memory, memid)
+        r = memory._db_read("SELECT x, y, z, bid FROM VoxelObjects WHERE uuid=?", self.memid)
+        self.locs = [(xyzb[0], xyzb[1], xyzb[2]) for xyzb in r]
+        self.blocks = {(xyzb[0], xyzb[1], xyzb[2]): (xyzb[3], 0) for xyzb in r}
+        tags = memory.get_triples(subj=self.memid, pred_text="has_tag")
+        self.tags = []  # noqa: T484
+        for tag in tags:
+            if tag[2][0] != "_":
+                self.tags.append(tag[2])
+
+    def __repr__(self):
+        return "<InstSeg Node @ {} with tags {} >".format(self.locs, self.tags)
+
+
 
 class MobNode(ReferenceObjectNode):
     """ a memory node represneting a mob"""

@@ -73,7 +73,7 @@ function PointS(Split, Player)
     end
 
     -- 2. Perform build-and-destroy to mimic flickering
-    num_flickers = 3
+    num_flickers = 2
     a = -1
     b = -1
     for i = 0,num_flickers do 

@@ -123,7 +123,6 @@ def interpret_reference_object(
         if not_location:
             tags.append("_not_location")
         # TODO Add ignore_player maybe?
-        import pdb; pdb.set_trace()
         candidates = get_reference_objects(interpreter, *tags)
         if len(candidates) > 0:
             r = filter_by_sublocation(
@@ -138,6 +137,7 @@ def interpret_reference_object(
                 "low_level"
             ].get_player_struct_by_name(speaker)
             tags = []
+            tags.append("semseg")
             if only_voxels:
                 tags.append("_voxel_object")
             if only_physical:

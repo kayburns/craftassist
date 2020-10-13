@@ -221,7 +221,7 @@ class CraftAssistAgent(LocoMCAgent):
         if sleep:
             time.sleep(sleep)
 
-    def point_s_at(self, locs, sleep=5):
+    def point_s_at(self, locs, sleep=6):
         """Bot pointing.
 
         Args:
