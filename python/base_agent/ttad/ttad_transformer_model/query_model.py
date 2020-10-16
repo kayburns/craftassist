@@ -12,7 +12,7 @@ from train_model import *
 
 
 class TTADBertModel(object):
-    def __init__(self, model_dir, data_dir, model_name="caip_test_model"):
+    def __init__(self, model_dir, data_dir, model_name="caip_test_model", decomposition_model=None):
         model_name = model_dir + model_name
         args = pickle.load(open(model_name + "_args.pk", "rb"))
 
@@ -42,10 +42,17 @@ class TTADBertModel(object):
             else self.encoder_decoder.cpu()
         )
         self.encoder_decoder.eval()
+        
+        if decomposition_model:
+            self.decomposition_model = decomposition_model()
+        else:
+            self.decomposition_model = decomposition_model
+
 
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
         btr = beam_search(
-            chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size, well_formed_pen
+            chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size,
+            well_formed_pen, decomposition_model=self.decomposition_model
         )
         if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < noop_thres:
             tree = btr[1][0]

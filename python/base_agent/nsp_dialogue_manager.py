@@ -81,9 +81,12 @@ class NSPDialogueManager(DialogueManager):
 
         # Instantiate the main model
         if opts.nsp_data_dir is not None:
+            from ttad.ttad_transformer_model.decomposition_model import DecomposeOnline
             from ttad.ttad_transformer_model.query_model import TTADBertModel as Model
 
-            self.model = Model(model_dir=opts.nsp_model_dir, data_dir=opts.nsp_data_dir)
+            self.model = Model(
+                model_dir=opts.nsp_model_dir, data_dir=opts.nsp_data_dir, 
+                decomposition_model=DecomposeOnline)
         self.debug_mode = False
 
         # if web_app option is enabled

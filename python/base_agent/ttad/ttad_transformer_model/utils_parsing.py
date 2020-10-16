@@ -183,7 +183,7 @@ class DecoderWithLoss(nn.Module):
             span_e_lin_targets = y[:, 1:, 2].contiguous().view(-1)
             span_e_lin_loss = self.span_ce_loss(span_e_lin_scores, span_e_lin_targets)
             ## joint span prediction
-            # TODO: predict full spans, enforce order
+            # TODOS: predict full spans, enforce order
             # combine
             span_lin_loss = span_b_lin_loss + span_e_lin_loss
             span_loss = span_lin_loss.sum() / (y[:, :, 1] >= 0).sum()
@@ -314,7 +314,8 @@ def predict_tree(txt, model, tokenizer, dataset, ban_noop=False, noop_threshold=
 
 
 # beam prediction. Only uses node prediction scores (not the span scores)
-def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2):
+def beam_search(txt, model, tokenizer, dataset, beam_size=5,
+                well_formed_pen=1e2, decomposition_model=None):
     model_device = model.decoder.lm_head.predictions.decoder.weight.device
     # prepare batch
     text, idx_maps = tokenize_mapidx(txt, tokenizer)
@@ -335,6 +336,13 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5, well_formed_pen=1e2
     batch = [t.to(model_device) for t in batch[:4]]
     x, x_mask, y, y_mask = batch
     x_reps = model.encoder(input_ids=x, attention_mask=x_mask)[0].detach()
+
+    # if we are using online decomposition model, query first
+    if decomposition_model:
+        decomp_res = decomposition_model.maybe_get_parse(x_reps)
+        if decomp_res:
+            return decomp_res
+
     x_mask = x_mask.expand(beam_size, -1)
     x_reps = x_reps.expand(beam_size, -1, -1)
     # start decoding

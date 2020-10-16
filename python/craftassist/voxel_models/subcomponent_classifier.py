@@ -30,7 +30,7 @@ class SubcomponentClassifierWrapper:
         if model_path is not None:
             self.subcomponent_classifier = SubComponentClassifier(
                 voxel_model_path=model_path, vocab_path=vocab_path,
-                temps=[.001, 1], true_temp=self.true_temp)
+                temps=[1], true_temp=self.true_temp)
             self.subcomponent_classifier.start()
         else:
             self.subcomponent_classifier = None

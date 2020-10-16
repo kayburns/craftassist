@@ -91,6 +91,7 @@ class Interpreter(DialogueObject):
                 raise ErrorWithResponse(
                     "I thought you wanted me to do something, but now I don't know what"
                 )
+            import pdb; pdb.set_trace()
             for action_def in actions:
                 action_type = action_def["action_type"]
                 response = self.action_handlers[action_type](self.speaker, action_def)
