@@ -16,7 +16,13 @@ from threedhouses.src import build_proposal as build_proposal
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(BASE_AGENT_ROOT)
 
-from base_agent.dialogue_objects import DialogueObject, ConfirmTask, Say, SPEAKERLOOK
+from base_agent.dialogue_objects import (
+    DialogueObject,
+    ConfirmTask,
+    ConfirmParse,
+    Say,
+    SPEAKERLOOK
+)
 from .interpreter_helper import (
     ErrorWithResponse,
     NextDialogueStep,
@@ -51,7 +57,7 @@ class Interpreter(DialogueObject):
     Handlers should add/remove/reorder tasks on the stack, but not execute them.
     """
 
-    def __init__(self, speaker: str, action_dict: Dict, **kwargs):
+    def __init__(self, speaker: str, action_dict: Dict, chatstr: str, **kwargs):
         super().__init__(**kwargs)
         self.speaker = speaker
         self.action_dict = action_dict
@@ -60,6 +66,7 @@ class Interpreter(DialogueObject):
         self.loop_data = None
         self.archived_loop_data = None
         self.default_debug_path = "debug_interpreter.txt"
+        self.chatstr = chatstr
         self.action_handlers = {
             "MOVE": self.handle_move,
             "BUILD": self.handle_build,
@@ -91,16 +98,28 @@ class Interpreter(DialogueObject):
                 raise ErrorWithResponse(
                     "I thought you wanted me to do something, but now I don't know what"
                 )
-            import pdb; pdb.set_trace()
             for action_def in actions:
-                action_type = action_def["action_type"]
-                response = self.action_handlers[action_type](self.speaker, action_def)
+                chat = (self.speaker, self.chatstr)
+                if self.confirm_parse(action_def, chat):
+                    action_type = action_def["action_type"]
+                    response = self.action_handlers[action_type](self.speaker, action_def)
             return response
         except NextDialogueStep:
             return None, None
         except ErrorWithResponse as err:
             self.finished = True
             return err.chat, None
+    
+    def confirm_parse(self, action_def, chat):
+        if len(self.progeny_data) == 0:
+            self.dialogue_stack.append_new(ConfirmParse, chat, action_def)
+            raise NextDialogueStep()
+        else:
+            r = self.progeny_data[-1]["response"]
+            if r == "yes":
+                return True
+            else:
+                return False
 
     def handle_modify(self, speaker, d) -> Tuple[Optional[str], Any]:
         default_ref_d = {"filters": {"location": SPEAKERLOOK}}
@@ -237,8 +256,9 @@ class Interpreter(DialogueObject):
                 "ref_node_memid": mems[0].memid,
                 "location_dict": location_d
             }
-            self.append_new_task(tasks.FastBuild, task_data)
             logging.info("Added 1 FastBuild task to stack")
+            self.append_new_task(tasks.FastBuild, task_data)
+
             self.finished = True
             return None, None
 

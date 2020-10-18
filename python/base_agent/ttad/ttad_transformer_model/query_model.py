@@ -48,6 +48,8 @@ class TTADBertModel(object):
         else:
             self.decomposition_model = decomposition_model
 
+    def get_reps(self, chat):
+        return get_reps(chat, self.encoder_decoder, self.tokenizer, self.dataset)
 
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
         btr = beam_search(

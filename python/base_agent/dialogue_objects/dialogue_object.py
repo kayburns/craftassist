@@ -269,6 +269,66 @@ class ConfirmTask(DialogueObject):
                 self.memory.task_stack_push(task)
         return None, None
 
+class DefineParse(DialogueObject):
+    def __init__(self, chat, **kwargs):
+        super().__init__(**kwargs)
+        self.chat = chat
+        self.asked = False
+        self.question = "Define {}".format(chat[1])
+    
+    def step(self):
+        import pdb; pdb.set_trace()
+        if not self.asked:
+            self.dialogue_stack.append_new(AwaitResponse, 10000)
+            self.dialogue_stack.append_new(Say, self.question)
+            self.asked = True
+            return "", None
+
+        if len(self.progeny_data) == 0:
+            return None, None
+        self.finished = True
+        if hasattr(self.progeny_data[-1]["response"], "chat_text"):
+            decomposition = self.progeny_data[-1]["response"].chat_text
+            self.agent.dialogue_manager.online_decomposition(self.chat, decomposition)
+            response_str = "Ok, I will execute those commands one at a time now."
+        else:
+            response_str = "UNK"
+        return response_str, None
+        
+class ConfirmParse(DialogueObject):
+    def __init__(self, chat, parse, **kwargs):
+        super().__init__(**kwargs)
+        self.chat = chat
+        self.parse = parse
+        self.question = "Does this look correct: " + parse.__repr__()
+        self.asked = False
+
+    def step(self):
+        """Ask a confirmation question and wait for response."""
+        # Step 1: ask the question
+        import pdb; pdb.set_trace()
+        if not self.asked:
+            self.dialogue_stack.append_new(AwaitResponse, 10000)
+            self.dialogue_stack.append_new(Say, self.question)
+            self.asked = True
+            return "", None
+
+        # Step 2: check the response and add the task if necessary
+        if len(self.progeny_data) == 0:
+            return None, None
+        self.finished = True
+        if hasattr(self.progeny_data[-1]["response"], "chat_text"):
+            response_str = self.progeny_data[-1]["response"].chat_text
+        else:
+            response_str = "UNK"
+        if response_str in MAP_YES:
+            output_data = {"response": "yes"}
+        elif response_str in MAP_NO:
+            self.dialogue_stack.append_new(DefineParse, self.chat)
+            output_data = {"response": "no"}
+        else:
+            output_data = {"response": "unknown"}
+        return "", output_data
 
 """This class represents a sub-type of the DialogueObject to confirm if the
 reference object is correct."""

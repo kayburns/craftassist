@@ -28,7 +28,6 @@ sys.path.append(BASE_AGENT_ROOT)
 from base_agent.loco_mc_agent import LocoMCAgent
 from base_agent.util import hash_user
 
-
 from agent import Agent as MCAgent
 
 from low_level_perception import LowLevelMCPerception

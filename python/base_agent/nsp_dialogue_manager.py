@@ -157,7 +157,7 @@ class NSPDialogueManager(DialogueManager):
             return Say("I don't know how to answer that.", **self.dialogue_object_parameters)
         elif d["dialogue_type"] == "HUMAN_GIVE_COMMAND":
             return self.dialogue_objects["interpreter"](
-                speaker, d, **self.dialogue_object_parameters
+                speaker, d, chatstr, **self.dialogue_object_parameters
             )
         elif d["dialogue_type"] == "PUT_MEMORY":
             return self.dialogue_objects["put_memory"](
@@ -232,3 +232,15 @@ class NSPDialogueManager(DialogueManager):
         logging.info('logical form after grammar fix "{}"'.format(d))
 
         return d
+
+    def online_decomposition(self, chat, decomposition):
+        speaker, chatstr = chat
+        decompositions = decomposition.split(";")
+        dial_objs = []
+        x_reps = self.model.get_reps(chatstr)
+        self.model.decomposition_model.update(x_reps, decompositions)
+        for decomp in decompositions:
+            dial_objs.append(self.maybe_get_dialogue_obj((speaker, decomp)))
+        for dial_obj in dial_objs[::-1]:
+            self.dialogue_stack.append(dial_obj)
+
