@@ -595,7 +595,7 @@ class FastBuild(Task):
     def step(self, agent):
         # wait certain amount of ticks until issuing next step
         while not (agent.memory.get_time() - self.last_stepped_time) > self.throttling_tick:
-           pass
+            pass
         
         if not agent.generator:
             agent.send_chat("No generator defined. Is online learning enabled?")
@@ -639,10 +639,10 @@ class Destroy(Task):
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
-        if len(schematic) < 20:
+        if len(self.schematic) < 20:
             batches = 1
         else:
-            batches = len(schematic) // 20
+            batches = len(self.schematic) // 20
 
         for i in range(batches):
             batch = self.schematic[i*20:(i+1)*20]

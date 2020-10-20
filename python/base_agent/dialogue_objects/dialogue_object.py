@@ -299,7 +299,8 @@ class ConfirmParse(DialogueObject):
         super().__init__(**kwargs)
         self.chat = chat
         self.parse = parse
-        self.question = "Does this look correct: " + parse.__repr__()
+        # TODO, make human readable
+        self.question = "Does this look correct: " + parse['action_type'].__repr__()
         self.asked = False
 
     def step(self):

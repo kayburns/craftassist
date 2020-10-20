@@ -19,7 +19,7 @@ class DecomposeOnline():
         print(self.index.ntotal)
 
     def reduce_word_features(self, word_feats):
-        return np.average(word_feats, axis=1)
+        return np.sum(word_feats, axis=1)
 
     def maybe_get_parse(self, x_reps):
         x_reps = x_reps.cpu().detach().numpy()

@@ -152,11 +152,12 @@ class InstSegNode(VoxelObjectNode):
     def create(cls, memory, blocks, tags=[]) -> str:
         # TODO option to not overwrite
         # check if instance segmentation object already exists in memory
-        inst_memids = {}
         if len(blocks[0]) == 2: # hack to store block type for sem seg
             locs = [loc for loc, idm in blocks]
         else:
             locs = blocks
+        """
+        inst_memids = {}
         for xyz in locs:
             m = memory._db_read(
                 'SELECT uuid from VoxelObjects WHERE ref_type="inst_seg" AND x=? AND y=? AND z=?',
@@ -171,6 +172,7 @@ class InstSegNode(VoxelObjectNode):
             # TODO maybe make an archive?
             if len(set(olocs) - set(locs)) == 0:
                 memory._db_write("DELETE FROM Memories WHERE uuid=?", m)
+        """
 
         memid = cls.new(memory)
         loc = np.mean(locs, axis=0)
