@@ -115,7 +115,7 @@ class Interpreter(DialogueObject):
             self.dialogue_stack.append_new(ConfirmParse, chat, action_def)
             raise NextDialogueStep()
         else:
-            r = self.progeny_data[-1]["response"]
+            r = self.progeny_data.pop(-1)["response"]
             if r == "yes":
                 return True
             else:
@@ -242,7 +242,9 @@ class Interpreter(DialogueObject):
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
         # determine if build action is on house
         location_d = d.get("location", SPEAKERLOOK)
-        if 'reference_object' in location_d:
+        schematic = d.get("schematic", None)
+        import pdb; pdb.set_trace()
+        if location_d != SPEAKERLOOK:
             location_name = location_d['reference_object']['filters']['has_name']
         else:
             location_name = None

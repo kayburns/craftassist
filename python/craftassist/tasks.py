@@ -639,7 +639,11 @@ class Destroy(Task):
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
-        batches = len(self.schematic) // 20
+        if len(schematic) < 20:
+            batches = 1
+        else:
+            batches = len(schematic) // 20
+
         for i in range(batches):
             batch = self.schematic[i*20:(i+1)*20]
             coords_to_remove = [str(c) for (xyz, bm) in batch for c in xyz]

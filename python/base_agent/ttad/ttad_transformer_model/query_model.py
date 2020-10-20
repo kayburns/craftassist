@@ -49,15 +49,62 @@ class TTADBertModel(object):
             self.decomposition_model = decomposition_model
 
     def get_reps(self, chat):
-        return get_reps(chat, self.encoder_decoder, self.tokenizer, self.dataset)
+        x_reps, batch, idx_rev_map, model_device = get_reps(
+            chat, self.encoder_decoder, self.tokenizer, self.dataset
+        )
+        return x_reps
 
     def parse(self, chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
-        btr = beam_search(
-            chat, self.encoder_decoder, self.tokenizer, self.dataset, beam_size,
-            well_formed_pen, decomposition_model=self.decomposition_model
-        )
-        if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < noop_thres:
-            tree = btr[1][0]
+        if self.decomposition_model:
+            chats = [chat]
+            # continue decomposing until all decomposable chats are decomposed
+            while any(isinstance(chat, str) for chat in chats):
+                decomposed_chats = []
+                for chat in chats:
+                    if isinstance(chat, str):
+                        x_reps, batch, idx_rev_map, model_device = get_reps(
+                            chat, self.encoder_decoder, self.tokenizer,
+                            self.dataset
+                        )
+                        decomp_res = self.decomposition_model.maybe_get_parse(x_reps)
+                        if decomp_res:
+                            decomposed_chats.extend(decomp_res)
+                        else:
+                            decomposed_chats.append(x_reps)
+                    else:
+                        decomposed_chats.append(chat)
+                chats = decomposed_chats
+
+            # retrieve dictionary for each chat
+            commands = []
+            for chat in chats:
+                btr = beam_search(
+                    x_reps, batch, idx_rev_map, self.encoder_decoder, model_device,
+                    self.dataset, beam_size, well_formed_pen 
+                )
+                if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < noop_thres:
+                    command = btr[1][0]
+                else:
+                    command = btr[0][0]
+                commands.append(command)
+
+            # reduce down to one dictionary by linking action_sequence lists
+            tree = commands[0]
+            if len(commands) > 1 and tree.get("dialogue_type", "NONE") == "HUMAN_GIVE_COMMAND":
+                for command in commands[1:]:
+                    tree['action_sequence'].extend(command['action_sequence'])
+            return tree
+
         else:
-            tree = btr[0][0]
+            x_reps, batch, idx_rev_map, model_device = get_reps(
+                chat, self.encoder_decoder, self.tokenizer, self.dataset
+            )
+            btr = beam_search(
+                x_reps, batch, idx_rev_map, self.encoder_decoder, model_device,
+                self.dataset, beam_size, well_formed_pen 
+            )
+            if btr[0][0].get("dialogue_type", "NONE") == "NOOP" and math.exp(btr[0][1]) < noop_thres:
+                tree = btr[1][0]
+            else:
+                tree = btr[0][0]
         return tree

@@ -84,8 +84,11 @@ class SubcomponentClassifierWrapper:
                             label2blocks[l].append(b)
                         else:
                             label2blocks[l] = [b]
-
-                #self.agent.send_chat("Here is what I think is in the scene.")
+                
+                labels_str = label2blocks.keys().__repr__()
+                self.agent.send_chat(
+                    "Here is what I think is in the scene." + labels_str
+                )
                 for l, blocks in label2blocks.items():
                     ## if the blocks are contaminated we just ignore
                     if not contaminated(blocks):
@@ -97,6 +100,8 @@ class SubcomponentClassifierWrapper:
                             PropSegNode.create(
                                 self.memory, blocks, "t{}_seg".format(temp),
                                 [l, 'semseg'])
+                    else:
+                        self.agent.send_chat(l + "is contaminated")
 
 
 class SubComponentClassifier(Process):

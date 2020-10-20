@@ -261,7 +261,7 @@ class ConfirmTask(DialogueObject):
         if len(self.progeny_data) == 0:
             return None, None
         if hasattr(self.progeny_data[-1]["response"], "chat_text"):
-            response_str = self.progeny_data[-1]["response"].chat_text
+            response_str = self.progeny_data.pop(-1)["response"].chat_text
         else:
             response_str = "UNK"
         if response_str in MAP_YES:
@@ -277,7 +277,6 @@ class DefineParse(DialogueObject):
         self.question = "Define {}".format(chat[1])
     
     def step(self):
-        import pdb; pdb.set_trace()
         if not self.asked:
             self.dialogue_stack.append_new(AwaitResponse, 10000)
             self.dialogue_stack.append_new(Say, self.question)
@@ -288,7 +287,7 @@ class DefineParse(DialogueObject):
             return None, None
         self.finished = True
         if hasattr(self.progeny_data[-1]["response"], "chat_text"):
-            decomposition = self.progeny_data[-1]["response"].chat_text
+            decomposition = self.progeny_data.pop(-1)["response"].chat_text
             self.agent.dialogue_manager.online_decomposition(self.chat, decomposition)
             response_str = "Ok, I will execute those commands one at a time now."
         else:
@@ -306,7 +305,6 @@ class ConfirmParse(DialogueObject):
     def step(self):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
-        import pdb; pdb.set_trace()
         if not self.asked:
             self.dialogue_stack.append_new(AwaitResponse, 10000)
             self.dialogue_stack.append_new(Say, self.question)
@@ -318,7 +316,7 @@ class ConfirmParse(DialogueObject):
             return None, None
         self.finished = True
         if hasattr(self.progeny_data[-1]["response"], "chat_text"):
-            response_str = self.progeny_data[-1]["response"].chat_text
+            response_str = self.progeny_data.pop(-1)["response"].chat_text
         else:
             response_str = "UNK"
         if response_str in MAP_YES:

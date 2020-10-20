@@ -313,9 +313,7 @@ def predict_tree(txt, model, tokenizer, dataset, ban_noop=False, noop_threshold=
     return (res_tree, noop_predicted, (text, res))
 
 
-# beam prediction. Only uses node prediction scores (not the span scores)
-def beam_search(txt, model, tokenizer, dataset, beam_size=5,
-                well_formed_pen=1e2, decomposition_model=None):
+def get_reps(txt, model, tokenizer, dataset):
     model_device = model.decoder.lm_head.predictions.decoder.weight.device
     # prepare batch
     text, idx_maps = tokenize_mapidx(txt, tokenizer)
@@ -337,12 +335,12 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5,
     x, x_mask, y, y_mask = batch
     x_reps = model.encoder(input_ids=x, attention_mask=x_mask)[0].detach()
 
-    # if we are using online decomposition model, query first
-    if decomposition_model:
-        decomp_res = decomposition_model.maybe_get_parse(x_reps)
-        if decomp_res:
-            return decomp_res
+    return x_reps, batch, idx_rev_map, model_device
 
+# beam prediction. Only uses node prediction scores (not the span scores)
+def beam_search(
+        x_reps, batch, idx_rev_map, model, model_device, dataset, beam_size=5, well_formed_pen=1e2):
+    x, x_mask, y, y_mask = batch
     x_mask = x_mask.expand(beam_size, -1)
     x_reps = x_reps.expand(beam_size, -1, -1)
     # start decoding
@@ -459,30 +457,7 @@ def beam_search(txt, model, tokenizer, dataset, beam_size=5,
     # sort one last time to have well-formed trees on top
     res = sorted(pre_res, key=lambda x: x[1], reverse=True)
     return res
-
-def get_reps(txt, model, tokenizer, dataset):
-    model_device = model.decoder.lm_head.predictions.decoder.weight.device
-    # prepare batch
-    text, idx_maps = tokenize_mapidx(txt, tokenizer)
-    idx_rev_map = [(0, 0)] * len(text.split())
-    for line_id, idx_map in enumerate(idx_maps):
-        for pre_id, (a, b) in enumerate(idx_map):
-            idx_rev_map[a] = (line_id, pre_id)
-            idx_rev_map[b] = (line_id, pre_id)
-    idx_rev_map[-1] = idx_rev_map[-2]
-    tree = [("<S>", -1, -1, -1, -1)]
-    text_idx_ls = [dataset.tokenizer._convert_token_to_id(w) for w in text.split()]
-    tree_idx_ls = [
-        [dataset.tree_idxs[w], bi, ei, text_span_bi, text_span_ei]
-        for w, bi, ei, text_span_bi, text_span_ei in tree
-    ]
-    pre_batch = [(text_idx_ls, tree_idx_ls, (text, txt, {}))]
-    batch = caip_collate(pre_batch, tokenizer)
-    batch = [t.to(model_device) for t in batch[:4]]
-    x, x_mask, y, y_mask = batch
-    x_reps = model.encoder(input_ids=x, attention_mask=x_mask)[0].detach()
-    return x_reps
-    
+ 
 # util function for validation and selecting hard examples
 def compute_accuracy(outputs, y):
     if len(y.shape) == 2:
