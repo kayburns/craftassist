@@ -130,8 +130,9 @@ def interpret_reference_object(
             )
             return [mem for _, mem in r]
         else:
-            # no candidates found; ask Clarification
-            # TODO: move ttad call to dialogue manager and remove this logic
+            interpreter.dialogue_stack.append_new(RequestPoint, tags[0])
+            raise NextDialogueStep()
+            """
             interpreter.action_dict_frozen = True
             player_struct = interpreter.agent.perception_modules[
                 "low_level"
@@ -158,11 +159,11 @@ def interpret_reference_object(
                 interpreter.provisional["F"] = F
                 interpreter.dialogue_stack.append_new(ConfirmReferenceObject, mem)
             raise NextDialogueStep()
-
+            """
     else:
         # clarification answered
-        r = interpreter.progeny_data[-1].get("response")
-        if r == "yes":
+        r = interpreter.progeny_data.pop(-1).get("response")
+        if r == "point":
             # TODO: learn from the tag!  put it in memory!
             return [interpreter.provisional.get("object_mem")] * limit
         else:

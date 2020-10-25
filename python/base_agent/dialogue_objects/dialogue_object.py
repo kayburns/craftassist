@@ -371,15 +371,72 @@ class ConfirmReferenceObject(DialogueObject):
                 output_data = {"response": "unkown"}
         return "", output_data
 
+class RequestPoint(DialogueObject):
+    def __init__(self, obj_name, **kwargs):
+        super().__init__(**kwargs)
+        self.asked = False
+        self.obj_name = obj_name
+
+    def step(self):
+        if not self.asked:
+            request_string = "I don't understand what `{}` refers to. "\
+                "Please point to the object with your cursor and chat `point` "\
+                "when you're pointing.".format(self.obj_name)
+            self.dialogue_stack.append_new(Say, request_string)
+            self.asked = True
+            return "", None
+
+        if len(self.progeny_data) == 0:
+            return "", None
+        else:
+            if hasattr(self.progeny_data[-1]["response"], "chat_text"):
+                response_str = self.progeny_data.pop(-1)["response"].chat_text
+            else:
+                response_str = "UNK"
+            
+            if response_str == "point":
+                #output_data = {"gaze":}
+                output_data = {"response": "unknown"}
+                return "Thanks. You can stop pointing now.", output_data
+            else:
+                output_data = {"response": "unknown"}
+                return "Sorry, I got confused :(", output_data
+ 
+
 class AdvancedConfirmReferenceObject(DialogueObject):
     def __init__(self, reference_objects, **kwargs):
         super().__init__(**kwargs)
         r_list = reference_objects
-        self.locs_list = [r.locs for r in r_list]
+        self.locs_list = [r.blocks for r in r_list]
         self.pointed = False
         self.asked = False
 
     def step(self):
+        if not self.asked:
+            request_string = "I don't understand what you're referring to. "\
+                "Please point to the object with your cursor and chat `point` "\
+                "when you're done pointing."
+            self.dialogue_stack.append_new(Say, request_string)
+            self.asked = True
+            return "", None
+
+        if len(self.progeny_data) == 0:
+            return "", None
+        else:
+            if hasattr(self.progeny_data[-1]["response"], "chat_text"):
+                response_str = self.progeny_data.pop(-1)["response"].chat_text
+            else:
+                response_str = "UNK"
+            
+            if response_str == "point":
+                output_data = {"response": "point"}
+                return "got it, thanks!", output_data
+            else:
+                output_data = {"response": "unknown"}
+                return "", output_data
+            
+
+        """
         if not self.asked:
             request_string = "I don't know what you are referring to. Can you "\
                 "help me locate it using one of the objects I know? Here is "\
@@ -409,3 +466,4 @@ class AdvancedConfirmReferenceObject(DialogueObject):
             else:
                 output_data = {"response": "unkown"}
         return "", output_data
+        """

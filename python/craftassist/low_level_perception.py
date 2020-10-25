@@ -79,6 +79,7 @@ class LowLevelMCPerception:
 
     def on_block_changed(self, xyz: XYZ, idm: IDM):
         # TODO don't need to do this for far away blocks if this is slowing down bot
+        logging.info("removing block {}".format(xyz))
         self.maybe_remove_inst_seg(xyz)
         self.maybe_remove_block_from_memory(xyz, idm)
         self.maybe_add_block_to_memory(xyz, idm)
@@ -116,6 +117,7 @@ class LowLevelMCPerception:
                 )
                 if bool(r):
                     all_deleted = False
+                    break
             if all_deleted:
                 # TODO make an archive.
                 self.memory._db_write("DELETE FROM Memories WHERE uuid=?", memid)

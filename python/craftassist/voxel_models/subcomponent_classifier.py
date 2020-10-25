@@ -101,7 +101,7 @@ class SubcomponentClassifierWrapper:
                                 self.memory, blocks, "t{}_seg".format(temp),
                                 [l, 'semseg'])
                     else:
-                        self.agent.send_chat(l + "is contaminated")
+                        self.agent.send_chat(l + " is contaminated")
 
 
 class SubComponentClassifier(Process):

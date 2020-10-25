@@ -1,6 +1,7 @@
 import json
 import math
 import pickle
+import logging
 
 import torch
 
@@ -68,6 +69,7 @@ class TTADBertModel(object):
                         )
                         decomp_res = self.decomposition_model.maybe_get_parse(x_reps)
                         if decomp_res:
+                            logging.info("Decomposing {}".format(chat))
                             decomposed_chats.extend(decomp_res)
                         else:
                             decomposed_chats.append(x_reps)
