@@ -144,8 +144,7 @@ class CraftAssistAgent(LocoMCAgent):
             self.dialogue_manager.step((None, ""))
 
     def maybe_run_slow_defaults(self):
-        """Pick a default task task to run
-        with a low probability"""
+        """Pick a default task task to run with a low probability"""
         if self.memory.task_stack_peek() or len(self.dialogue_manager.dialogue_stack) > 0:
             return
 
@@ -248,7 +247,6 @@ class CraftAssistAgent(LocoMCAgent):
         self.set_look(self.get_player().look.yaw, new_pitch)
 
 
-
     def relative_head_pitch(self, angle):
         # warning: pitch is flipped!
         new_pitch = self.get_player().look.pitch - angle
@@ -258,6 +256,9 @@ class CraftAssistAgent(LocoMCAgent):
         logging.info("Sending chat: {}".format(chat))
         self.memory.add_chat(self.memory.self_memid, chat)
         return self.cagent.send_chat(chat)
+
+    def update_segmentation(self, label, blocks, house):
+        self.perception_modules["semseg"].update(label, blocks, house)
 
     # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,

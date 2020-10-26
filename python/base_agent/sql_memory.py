@@ -109,6 +109,21 @@ class AgentMemory:
         )
         return [self.get_mem_by_id(memid, memtype) for memid, in r]
 
+    # for now, no archives in recent entities
+    def get_player_changed_blocks(self, since) -> List["MemoryNode"]:
+        memtype = "BlockObject"
+        r = self._db_read(
+            """SELECT uuid
+            FROM Memories
+            WHERE node_type=? AND attended_time >= ? and is_snapshot=0
+            ORDER BY attended_time DESC""",
+            memtype,
+            since
+        )
+        return [self.get_mem_by_id(memid, memtype) for memid, in r]
+
+
+
     ###############
     ### General ###
     ###############

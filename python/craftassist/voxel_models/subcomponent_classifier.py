@@ -3,6 +3,7 @@ Copyright (c) Facebook, Inc. and its affiliates.
 """
 
 import logging
+import queue
 from multiprocessing import Queue, Process
 import sys
 import os
@@ -103,6 +104,9 @@ class SubcomponentClassifierWrapper:
                     else:
                         self.agent.send_chat(l + " is contaminated")
 
+    def update(self, label, blocks, house):
+        self.subcomponent_classifier.to_update_q.put((label, blocks, house))
+
 
 class SubComponentClassifier(Process):
     """
@@ -122,6 +126,7 @@ class SubComponentClassifier(Process):
 
         self.block_objs_q = Queue()  # store block objects to be recognized
         self.loc2labels_q = Queue()  # store loc2labels dicts to be retrieved by the agent
+        self.to_update_q = Queue()
         self.temps = temps
         self.true_temp = true_temp
         self.daemon = True
@@ -147,6 +152,11 @@ class SubComponentClassifier(Process):
                 temp2loc2labels[temp] = loc2labels
 
             self.loc2labels_q.put((temp2loc2labels, tb))
+            try:
+                label, blocks, house = self.to_update_q.get_nowait()
+                self.update(label, blocks, house)
+            except queue.Empty:
+                pass
 
     def _watch_single_object(self, tuple_blocks, t=1):
         """
@@ -182,3 +192,10 @@ class SubComponentClassifier(Process):
         for tb in list_of_tuple_blocks:
             tags.update(self._watch_single_object(tb))
         return tags
+
+    def update(self, label, blocks, house):
+        # TODO: fails if blocks not in house
+        np_house, offsets = bu.blocks_list_to_npy(blocks=house, xyz=True)
+        np_blocks, _ =  bu.blocks_list_to_npy(blocks=blocks, xyz=True, offsets=offsets)
+        self.model.update(label, np_blocks, np_house)
+

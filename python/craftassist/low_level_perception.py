@@ -1,6 +1,7 @@
 # FIXME fix util imports
 import os
 import sys
+import logging
 
 import util
 from util import XYZ, IDM, to_block_pos, pos_to_np, euclid_dist

@@ -15,6 +15,7 @@ from dialogue_object import (
     ConfirmParse,
     ConfirmReferenceObject,
     AdvancedConfirmReferenceObject,
+    RequestChange,
     Say,
 )
 

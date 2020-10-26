@@ -84,6 +84,9 @@ class SemSegNet(nn.Module):
             z = self.layers[i](z)
         return self.lsm(self.out(z/T))
 
+    def update(self, label, blocks, house):
+        return #TODO
+    
     def save(self, filepath):
         self.cpu()
         sds = {}
@@ -184,6 +187,8 @@ class SemSegWrapper:
         else:
             return {tuple(ll for ll in l): mids[l[0], l[1], l[2]].item() for l in locs}
 
+    def update(self, label, blocks, house):
+        return # TODO
 
 if __name__ == "__main__":
     import argparse

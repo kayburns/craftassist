@@ -371,33 +371,44 @@ class ConfirmReferenceObject(DialogueObject):
                 output_data = {"response": "unkown"}
         return "", output_data
 
-class RequestPoint(DialogueObject):
+class RequestChange(DialogueObject):
     def __init__(self, obj_name, **kwargs):
         super().__init__(**kwargs)
+        self.init_time = self.memory.get_time()
         self.asked = False
         self.obj_name = obj_name
+        self.changed_blocks = []
+        self.awaiting_response = True
+        self.max_steps = 3000000
+        import pdb; pdb.set_trace()
+        f = {"triples": [{"pred_text": "has_tag", "obj_text": "house"}]}
+        self.house_blocks = self.memory.get_reference_objects(f)[0].blocks
+        # TODO: too many houses?
 
     def step(self):
         if not self.asked:
             request_string = "I don't understand what `{}` refers to. "\
-                "Please point to the object with your cursor and chat `point` "\
-                "when you're pointing.".format(self.obj_name)
+                "Please make the change and say 'Done' when you're finished. "\
+                "This will help me do better in the future!".format(self.obj_name)
             self.dialogue_stack.append_new(Say, request_string)
             self.asked = True
             return "", None
 
-        if len(self.progeny_data) == 0:
+        chatmem = self.memory.get_most_recent_incoming_chat(after=self.init_time + 1)
+        if chatmem is None:
+            # TODO: no flush still empties the queue
             return "", None
         else:
-            if hasattr(self.progeny_data[-1]["response"], "chat_text"):
-                response_str = self.progeny_data.pop(-1)["response"].chat_text
-            else:
-                response_str = "UNK"
-            
-            if response_str == "point":
-                #output_data = {"gaze":}
-                output_data = {"response": "unknown"}
-                return "Thanks. You can stop pointing now.", output_data
+            import pdb; pdb.set_trace()
+            self.blocks_changed = self.memory.get_player_changed_blocks(self.init_time)
+            chat = chatmem.chat_text
+            if "done" in chat or "Done" in chat:
+                label = self.obj_name
+                blocks = self.changed_blocks
+                house = self.house_blocks
+                self.agent.update_segmentation(label, blocks, house)
+                output_data = {"response": "done"}
+                return "Thanks! I'll remember that in the future.", output_data
             else:
                 output_data = {"response": "unknown"}
                 return "Sorry, I got confused :(", output_data

@@ -12,6 +12,7 @@ from typing import cast, List, Tuple, Union, Optional, Dict
 from base_agent.dialogue_objects import (
     ConfirmReferenceObject,
     AdvancedConfirmReferenceObject,
+    RequestChange,
     SPEAKERLOOK
 )
 import block_data
@@ -130,7 +131,7 @@ def interpret_reference_object(
             )
             return [mem for _, mem in r]
         else:
-            interpreter.dialogue_stack.append_new(RequestPoint, tags[0])
+            interpreter.dialogue_stack.append_new(RequestChange, tags[0])
             raise NextDialogueStep()
             """
             interpreter.action_dict_frozen = True

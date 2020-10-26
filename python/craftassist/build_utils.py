@@ -58,18 +58,20 @@ def to_relative_pos(block_list):
     return S, origin
 
 
-def blocks_list_to_npy(blocks, xyz=False):
+def blocks_list_to_npy(blocks, xyz=False, offsets=None):
     """Convert a list of blockid meta (x, y, z), (id, meta) to numpy"""
     xyzbm = np.array([(x, y, z, b, m) for ((x, y, z), (b, m)) in blocks])
-    mx, my, mz = np.min(xyzbm[:, :3], axis=0)
+    if offsets:
+        my, mz, mx = offsets
+    else:
+        mx, my, mz = np.min(xyzbm[:, :3], axis=0)
+        offsets = (my, mz, mx)
     Mx, My, Mz = np.max(xyzbm[:, :3], axis=0)
 
     npy = np.zeros((My - my + 1, Mz - mz + 1, Mx - mx + 1, 2), dtype="int32")
 
     for x, y, z, b, m in xyzbm:
         npy[y - my, z - mz, x - mx] = (b, m)
-
-    offsets = (my, mz, mx)
 
     if xyz:
         npy = np.swapaxes(np.swapaxes(npy, 1, 2), 0, 1)

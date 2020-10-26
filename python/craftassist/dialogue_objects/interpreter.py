@@ -98,6 +98,7 @@ class Interpreter(DialogueObject):
                 raise ErrorWithResponse(
                     "I thought you wanted me to do something, but now I don't know what"
                 )
+            response = {} #TODO
             for action_def in actions:
                 chat = (self.speaker, self.chatstr)
                 if self.confirm_parse(action_def, chat):
