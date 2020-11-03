@@ -101,11 +101,20 @@ class SubcomponentClassifierWrapper:
                             PropSegNode.create(
                                 self.memory, blocks, "t{}_seg".format(temp),
                                 [l, 'semseg'])
-                    else:
-                        self.agent.send_chat(l + " is contaminated")
 
     def update(self, label, blocks, house):
-        self.subcomponent_classifier.to_update_q.put((label, blocks, house))
+        import pdb; pdb.set_trace()
+        self.model = SemSegWrapper(
+            '/craftassist/python/craftassist/models/vision/sem_seg_model.pth', 
+            ''
+        )
+        np_house, offsets = bu.blocks_list_to_npy(blocks=house, xyz=True)
+        blocks = [(xyz, (1, 0)) for xyz, _ in blocks]
+        np_blocks, _ =  bu.blocks_list_to_npy(
+            blocks=blocks, xyz=False, offsets=offsets, shape=np_house.shape) # shape is still xyz bc of shape arg
+        self.model.update(label, np_blocks, np_house)
+
+        #self.subcomponent_classifier.to_update_q.put((label, blocks, house))
 
 
 class SubComponentClassifier(Process):
@@ -196,6 +205,7 @@ class SubComponentClassifier(Process):
     def update(self, label, blocks, house):
         # TODO: fails if blocks not in house
         np_house, offsets = bu.blocks_list_to_npy(blocks=house, xyz=True)
-        np_blocks, _ =  bu.blocks_list_to_npy(blocks=blocks, xyz=True, offsets=offsets)
+        np_blocks, _ =  bu.blocks_list_to_npy(
+            blocks=blocks, xyz=True, offsets=offsets, shape=np_house.shape)
         self.model.update(label, np_blocks, np_house)
 

@@ -162,7 +162,6 @@ def organize_classes(classes, min_occurence):
 
     return new_classes, class_map
 
-
 def reconcile_classes(classes, to_match):
     new_to_match = deepcopy(to_match)
     new_classes = deepcopy(classes)
@@ -180,7 +179,6 @@ def reconcile_classes(classes, to_match):
 
     return new_classes, class_map
 
-
 class SemSegData(tds.Dataset):
     def __init__(
         self,
@@ -191,6 +189,7 @@ class SemSegData(tds.Dataset):
         augment={},
         min_class_occurence=250,
         useid=True,
+        to_keep=None
     ):
         self.sidelength = sidelength
         self.useid = useid
@@ -225,6 +224,14 @@ class SemSegData(tds.Dataset):
         # this should be 0...
         self.nothing_id = self.classes["name2idx"]["none"]
 
+        if to_keep:
+            for k in to_keep:
+                idx = len(self.classes['name2idx'])
+                self.classes['name2idx'][k] = idx
+                self.classes['idx2name'].append(k)
+                self.classes['name2count'][k] = classes['name2count'][k]
+                class_map[k] = k
+
         c = self.classes["name2idx"]
         for i in range(len(self.inst_data)):
             self.inst_data[i] = list(self.inst_data[i])
@@ -239,6 +246,14 @@ class SemSegData(tds.Dataset):
 
     def set_classes(self, classes):
         self.classes = classes
+
+    def get_all_x_with_class(self, cls):
+        idx_s = []
+        for i, x in enumerate(self.inst_data):
+            if cls in x[2]:
+                idx_s.append(i)
+        x_s = [(cls, self.classes['name2idx'][cls], self.__getitem__(i)) for i in idx_s]
+        return x_s
 
     def __getitem__(self, index):
         x = self.inst_data[index]

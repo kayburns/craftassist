@@ -57,6 +57,7 @@ def validate(model, validation_data):
 def train_epoch(model, DL, loss, optimizer, args):
     model.train()
     losses = []
+    import pdb; pdb.set_trace()
     for b in DL:
         x = b[0]
         s = b[1].unsqueeze(1).float()

@@ -377,13 +377,15 @@ class RequestChange(DialogueObject):
         self.init_time = self.memory.get_time()
         self.asked = False
         self.obj_name = obj_name
-        self.changed_blocks = []
         self.awaiting_response = True
         self.max_steps = 3000000
-        import pdb; pdb.set_trace()
         f = {"triples": [{"pred_text": "has_tag", "obj_text": "house"}]}
-        self.house_blocks = self.memory.get_reference_objects(f)[0].blocks
-        # TODO: too many houses?
+        house_blocks = self.memory.get_reference_objects(f)
+        self.house_blocks = house_blocks[0].blocks
+        for hb in house_blocks:
+            if len(hb.blocks) > len(self.house_blocks):
+                self.house_blocks = hb.blocks
+        # TODO: too many houses? hackily pick largest house object
 
     def step(self):
         if not self.asked:
@@ -396,16 +398,15 @@ class RequestChange(DialogueObject):
 
         chatmem = self.memory.get_most_recent_incoming_chat(after=self.init_time + 1)
         if chatmem is None:
-            # TODO: no flush still empties the queue
             return "", None
         else:
             import pdb; pdb.set_trace()
-            self.blocks_changed = self.memory.get_player_changed_blocks(self.init_time)
+            blocks_changed = self.memory.get_player_changed_blocks(self.init_time)[0].blocks
             chat = chatmem.chat_text
             if "done" in chat or "Done" in chat:
                 label = self.obj_name
-                blocks = self.changed_blocks
-                house = self.house_blocks
+                blocks = [(loc, b) for loc, b in blocks_changed.items()]
+                house = [(loc, b) for loc, b in self.house_blocks.items()]
                 self.agent.update_segmentation(label, blocks, house)
                 output_data = {"response": "done"}
                 return "Thanks! I'll remember that in the future.", output_data

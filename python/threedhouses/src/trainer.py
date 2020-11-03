@@ -65,12 +65,10 @@ def iterate_through_dataset(args):
     if args.use_visdom:
         vis = visdom.Visdom()
 
-    train_dsets = Craft3DDatasetAnno(params.data_dir, "train")
-    #train_dsets = Craft3DPartsDataset(params.data_dir, "train")
+    #train_dsets = Craft3DDatasetAnno(params.data_dir, "train")
+    train_dsets = Craft3DPartsDataset(params.data_dir, "train")
     train_dset_loaders = torch.utils.data.DataLoader(
-        train_dsets, batch_size=8, shuffle=False, num_workers=1)
-
-    train_dsets.print_statistics()
+        train_dsets, batch_size=2, shuffle=False, num_workers=0)
 
     for i, X in enumerate(tqdm(train_dset_loaders)):
         examples = X.cpu().data.squeeze().numpy()

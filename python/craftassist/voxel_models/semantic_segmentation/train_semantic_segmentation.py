@@ -59,7 +59,8 @@ def get_loss(x, y, yhat, loss):
     preloss = loss(yhat, y)
     mask = torch.zeros_like(y).float()
     u = x.float() + x.float().uniform_(0, 1)
-    idx = u.view(-1).gt((1 - args.sample_empty_prob)).nonzero().squeeze()
+    #idx = u.view(-1).gt((1 - args.sample_empty_prob)).nonzero().squeeze()
+    idx = u.view(-1).gt((1 - 0.01)).nonzero().squeeze()
     mask.view(-1)[idx] = 1
     M = float(idx.size(0))
     # FIXME: eventually need to intersect with "none" tags; want to push loss on labeled empty voxels
@@ -91,9 +92,40 @@ def validate(model: nn.Module, validation_data: DataLoader, loss, args):
             accs.append(a.item())
             losses.append(l.item())
     return losses, accs
-        
+ 
+def online_update(x, y, cls, model, loss, optimizer):
+    model.train()
+    losses = []
+    accs = []
+
+    if torch.cuda.is_available():
+        x = x.cuda()
+        y = y.cuda()
+
+    # fetch cls index (if cls already exists return cls idx)
+    cls_idx = model.add_class_online(cls)
+
+    # predict and remap indeices
+    optimizer.zero_grad()
+    yhat = model(x)
+    y = y.long()
+    y[y == 1] = cls_idx
+    y[y == 0] = yhat.max(1)[1][y == 0] # replace 0s with predicted labels
+
+    # update model
+    l = get_loss(x, y, yhat, loss) #TODO: propogate change only to y == 1?
+    a = get_accuracy(y, yhat)
+    losses.append(l.item())
+    accs.append(a.item())
+    l.backward()
+    optimizer.step()
+    
+    return losses, accs
+
+
 
 def train_epoch(model, DL, loss, optimizer, args):
+    import pdb; pdb.set_trace()
     model.train()
     losses = []
     accs = []

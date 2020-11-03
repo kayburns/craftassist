@@ -23,6 +23,74 @@ import requests
 import torch
 from torch.utils.data import Dataset
 
+class Craft3DDataset(Dataset):
+
+    def __init__(
+        self,
+        data_dir: str,
+        subset: str,
+        noise: list = [0],
+        regress_parts: bool = False,
+        regress_types: bool = False,
+        only_popular_parts: bool = False,
+        part_augment: bool = False,
+        remove: str = None
+   ):
+        super().__init__()
+        self.subset = subset
+        self.data_dir = data_dir
+
+        # raw training data
+        fname = ""
+        if subset == "train":
+            fname = "training_data.pkl"
+        elif subset == "valid":
+            fname = "validation_data.pkl"
+        fname = osp.join(self.data_dir, fname)
+        self.raw_items = self._load_raw(fname)
+        
+        # references to raw training data, with various augmentations specified
+        self.items = self._create_items()
+
+    def __getitem__(self, index):
+        raw_idx = self.items[index]
+        return
+
+    def __len__(self):
+        return len(self.items)
+    
+    def _load_raw(self, fname):
+        if not osp.isfile(fname):
+            raise RuntimeError(f"Split file not found at: {fname}")
+        with open(fname, "rb") as f:
+            raw_items = pkl.load(f)
+
+        standardized_items = []
+        for item in raw_items:
+            import pdb; pdb.set_trace()
+            schematic = torch.from_numpy(item[0])
+            schematic = self._standardize(schematic.permute(1, 2, 0))
+            part_schem = torch.from_numpy(item[1])
+            part_schem = self._standardize(part_schem.permute(1, 2, 0))
+            standardized_items.append((schematic, part_schem))
+
+        return raw_items
+
+    def _create_items(self):
+        return
+
+    def _standardize(self, annotation, noise=0):
+        standardized = torch.zeros(64, 64, 64)
+        x, y, z = annotation.shape
+        # centering with noise
+        noise_y = min(32 - (y//2) - 1, noise)
+        noise_z = min(32 - (z//2) - 1, noise)
+        y_idx = max(0, 32 - (y//2)+noise_y)
+        z_idx = max(0, 32 - (z//2)+noise_z)
+        standardized[:x, y_idx:y_idx+y, z_idx:z_idx+z] = annotation
+        return standardized
+
+
 class Craft3DDatasetAnno(Dataset):
 
     def __init__(
@@ -235,7 +303,7 @@ class Craft3DDatasetAnno(Dataset):
 
 
 
-class Craft3DDataset(Dataset):
+class Craft3DDatasetStale(Dataset):
     NUM_BLOCK_TYPES = 256
 
     def __init__(

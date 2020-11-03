@@ -8,7 +8,7 @@ Some utility functions
 import scipy.ndimage as nd
 import scipy.io as io
 import matplotlib
-import threedhouses.src.params as params
+import params
 
 if params.device.type != 'cpu':
     matplotlib.use('Agg')

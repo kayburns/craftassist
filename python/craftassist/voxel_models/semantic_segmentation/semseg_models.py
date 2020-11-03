@@ -1,12 +1,13 @@
 """
 Copyright (c) Facebook, Inc. and its affiliates.
 """
-
 import numpy as np
 import torch
 import pickle
+import torch.optim as optim
 import torch.nn as nn
 from data_loaders import make_example_from_raw
+from train_semantic_segmentation import get_loss, online_update
 
 
 class SemSegNet(nn.Module):
@@ -28,6 +29,8 @@ class SemSegNet(nn.Module):
             self.opts = opts
             self._build()
             self.classes = classes
+        self.online_convs = []
+        self.online_classes = []
 
     def _build(self):
         opts = self.opts
@@ -48,6 +51,7 @@ class SemSegNet(nn.Module):
         except:
             hidden_dim = 64
 
+        self.hidden_dim = hidden_dim
         self.embedding_dim = embedding_dim
         self.embedding = nn.Embedding(num_words, embedding_dim)
         self.layers = nn.ModuleList()
@@ -82,11 +86,12 @@ class SemSegNet(nn.Module):
         z = z.permute(0, 4, 1, 2, 3).contiguous()
         for i in range(self.num_layers):
             z = self.layers[i](z)
-        return self.lsm(self.out(z/T))
+        logits = self.out(z/T)
+        if len(self.online_convs) > 0:
+            online_logits = [out(z/T) for out in self.online_convs]
+            logits = torch.cat([logits]+online_logits, axis=1)
+        return self.lsm(logits)
 
-    def update(self, label, blocks, house):
-        return #TODO
-    
     def save(self, filepath):
         self.cpu()
         sds = {}
@@ -111,6 +116,22 @@ class SemSegNet(nn.Module):
         self.load_state_dict(sds["state_dict"])
         self.zero_grad()
         self.classes = sds["classes"]
+
+    def update_classes(self, cls):
+        cls_idx = len(self.classes['idx2name'])
+        self.classes['idx2name'].append(cls)
+        self.classes['name2idx'][cls] = cls_idx
+        self.classes['name2count'][cls] = 1 # does this matter?
+        return cls_idx
+
+    def add_class_online(self, cls):
+        name2idx = self.classes['name2idx']
+        if cls not in name2idx.keys():
+            self.online_convs.append(nn.Conv3d(self.hidden_dim, 1, kernel_size=1))
+            self.online_classes.append(cls)
+            return self.update_classes(cls)
+        else:
+            return name2idx[cls]
 
 
 class Opt:
@@ -141,12 +162,17 @@ class SemSegWrapper:
         self.tags = [(c, self.classes["name2count"][c]) for c in i2n]
         assert self.classes["name2idx"]["none"] == 0
 
+        # for online updates
+        self.loss = nn.NLLLoss(reduction="none")
+        self.optimizer = optim.Adagrad(model.parameters(), lr=0.01) 
+        if self.cuda:
+            self.loss.cuda()
+
     @torch.no_grad()
     def segment_object(self, blocks, T=1):
         self.model.eval()
 
         if self.model.vocab:
-
             vocab = self.model.vocab
             vocab_blocks = np.zeros(blocks.shape[:-1])
             for x in range(blocks.shape[0]):
@@ -188,7 +214,15 @@ class SemSegWrapper:
             return {tuple(ll for ll in l): mids[l[0], l[1], l[2]].item() for l in locs}
 
     def update(self, label, blocks, house):
-        return # TODO
+
+        x = house[:, :, :, 0]
+        y = blocks[:, :, :, 0]
+        x = torch.from_numpy(x)
+        y = torch.from_numpy(y)
+        x, y, o = make_example_from_raw(x, labels=y)
+        x, y = x.unsqueeze(0), y.unsqueeze(0)
+        online_update(x, y, label, self.model, self.loss, self.optimizer)
+
 
 if __name__ == "__main__":
     import argparse
