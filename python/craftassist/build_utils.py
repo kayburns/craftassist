@@ -69,17 +69,16 @@ def blocks_list_to_npy(blocks, xyz=False, offsets=None, shape=None):
     Mx, My, Mz = np.max(xyzbm[:, :3], axis=0)
 
     if shape:
-        assert not xyz
         npy = np.zeros(shape, dtype="int32")
+        for x, y, z, b, m in xyzbm:
+            npy[x - mx, y - my, z - mz] = (b, m)
     else:
         npy = np.zeros((My - my + 1, Mz - mz + 1, Mx - mx + 1, 2), dtype="int32")
-
-    for x, y, z, b, m in xyzbm:
-        npy[y - my, z - mz, x - mx] = (b, m)
-
-    if xyz:
-        npy = np.swapaxes(np.swapaxes(npy, 1, 2), 0, 1)
-        offsets = (mx, my, mz)
+        for x, y, z, b, m in xyzbm:
+            npy[y - my, z - mz, x - mx] = (b, m)
+        if xyz:
+            npy = np.swapaxes(np.swapaxes(npy, 1, 2), 0, 1)
+            offsets = (mx, my, mz)
 
     return npy, offsets
 

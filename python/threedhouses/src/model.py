@@ -1,5 +1,6 @@
 import torch
 import threedhouses.src.params as params
+#import params
 
 """
 model.py
@@ -30,11 +31,12 @@ class net_G(torch.nn.Module):
         self.layer3 = self.conv_layer(self.f_dim*4, self.f_dim*2, kernel_size=4, stride=2, padding=(1, 1, 1), bias=self.bias)
         self.layer4 = self.conv_layer(self.f_dim*2, self.f_dim, kernel_size=4, stride=2, padding=(1, 1, 1), bias=self.bias)
         
-        self.layer5 = torch.nn.Sequential(
+        self.logits = torch.nn.Sequential(
             torch.nn.ConvTranspose3d(self.f_dim, 1, kernel_size=4, stride=2, bias=self.bias, padding=(1, 1, 1)),
-            torch.nn.Sigmoid()
             # torch.nn.Tanh()
         )
+
+        self.cls = torch.nn.Sigmoid()
 
     def conv_layer(self, input_dim, output_dim, kernel_size=4, stride=2, padding=(1,1,1), bias=False):
         layer = torch.nn.Sequential(
@@ -51,9 +53,10 @@ class net_G(torch.nn.Module):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = self.layer5(out)
-        out = torch.squeeze(out)
-        return out
+        logits = self.logits(out)
+        cls = self.cls(logits)
+        logits, cls = torch.squeeze(logits), torch.squeeze(cls)
+        return logits, cls
 
 class net_G_blocks(torch.nn.Module):
     def __init__(self, args):
@@ -152,10 +155,7 @@ class net_E(torch.nn.Module):
         self.cube_len = params.cube_len
         self.leak_value = params.leak_value
         self.bias = params.bias
-        if params.vae:
-            self.z_dim = params.z_dim * 2
-        else:
-            self.z_dim = params.z_dim
+        self.z_dim = params.z_dim * 2
 
         padd = (0,0,0)
         if self.cube_len == 32:

@@ -400,14 +400,17 @@ class RequestChange(DialogueObject):
         if chatmem is None:
             return "", None
         else:
-            import pdb; pdb.set_trace()
-            blocks_changed = self.memory.get_player_changed_blocks(self.init_time)[0].blocks
+            blocks_changed = self.memory.get_player_changed_blocks(self.init_time)
+            blocks_changed = [mem.blocks for mem in blocks_changed]
+            blocks_changed = {xyz: b for bo in blocks_changed for xyz, b in bo.items()}
             chat = chatmem.chat_text
+            self.finished = True
             if "done" in chat or "Done" in chat:
                 label = self.obj_name
                 blocks = [(loc, b) for loc, b in blocks_changed.items()]
                 house = [(loc, b) for loc, b in self.house_blocks.items()]
                 self.agent.update_segmentation(label, blocks, house)
+                self.agent.update_generation(label, blocks, house)
                 output_data = {"response": "done"}
                 return "Thanks! I'll remember that in the future.", output_data
             else:

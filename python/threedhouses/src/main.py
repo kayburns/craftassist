@@ -19,11 +19,8 @@ def main():
 
     # loggings parameters
     parser.add_argument('--logs', action='store_true', help='logs by tensorboardX')
-    parser.add_argument('--model_name', type=str, default="dcgan", help='model name for saving')
     parser.add_argument('--test', action='store_true', help='call tester.py')
     parser.add_argument('--iter', action='store_true', help='call tester.py')
-    parser.add_argument('--use_visdom', action='store_true', help='visualization by visdom')
-    #parser.add_argument('--ae', action='store_true', help='train auto-encoder')
     parser.add_argument('--debug', action='store_true', help='Useful for debugging: 0 thread data loader')
     parser.add_argument('--probe', action='store_true', help='Analyze probe metrics')
 
@@ -41,7 +38,7 @@ def main():
     elif args.iter:
         iterate_through_dataset(args)
     else:
-        trainer_autoencoder_bl(args)
+        trainer(args)
 
 if __name__ == '__main__':
     main()

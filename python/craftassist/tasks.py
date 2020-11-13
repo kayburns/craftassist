@@ -591,6 +591,7 @@ class FastBuild(Task):
         self.ref_node_memid = task_data["ref_node_memid"]
         self.last_stepped_time = agent.memory.get_time()
         self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
+        self.to_build = task_data["to_build"]
 
     def step(self, agent):
         # wait certain amount of ticks until issuing next step
@@ -601,7 +602,8 @@ class FastBuild(Task):
             agent.send_chat("No generator defined. Is online learning enabled?")
             pass
 
-        schematic = agent.generator.generate_build_proposal_wrapper(self.ref_blocks)
+        import pdb; pdb.set_trace()
+        schematic = agent.generator.get_proposal(self.ref_blocks, self.to_build)
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time

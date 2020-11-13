@@ -20,7 +20,7 @@ from multiprocessing import set_start_method
 
 import mc_memory
 from dialogue_objects import GetMemoryHandler, PutMemoryHandler, Interpreter
-from threedhouses.src import build_proposal as build_proposal
+from visprim.src import build_proposal as build_proposal
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
@@ -259,6 +259,9 @@ class CraftAssistAgent(LocoMCAgent):
 
     def update_segmentation(self, label, blocks, house):
         self.perception_modules["semseg"].update(label, blocks, house)
+
+    def update_generation(self, label, blocks, house):
+        self.generator.update(label, blocks, house)
 
     # TODO update client so we can just loop through these
     # TODO rename things a bit- some perceptual things are here,

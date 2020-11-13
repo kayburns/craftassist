@@ -142,6 +142,8 @@ class LowLevelMCPerception:
                 self.pending_agent_placed_blocks.remove(xyz)
             except:
                 pass
+        if player_placed:
+            logging.info("PLAYER PLACED")
 
         adjacent = [
             self.memory.get_object_info_by_xyz(a, "BlockObjects", just_memid=False)
@@ -155,7 +157,8 @@ class LowLevelMCPerception:
             # normal block added
             adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] > 0]
         adjacent_memids = list(set(adjacent_memids))
-        if len(adjacent_memids) == 0:
+        # always create new objects for player placed blocks for ref obj id-ing
+        if len(adjacent_memids) == 0 or player_placed:
             # new block object
             BlockObjectNode.create(self.agent.memory, [(xyz, idm)])
         elif len(adjacent_memids) == 1:

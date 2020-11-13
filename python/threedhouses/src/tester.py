@@ -17,11 +17,9 @@ from datasets import Craft3DDataset, Craft3DDatasetAnno
 
 # added
 import datetime
-from tensorboardX import SummaryWriter
 import matplotlib.pyplot as plt
 import numpy as np
 import params
-import visdom
 import faiss
 from tqdm import tqdm
 import pickle as pkl
@@ -61,16 +59,14 @@ def load_pretrained_GE(save_file_path, G, E):
     return G, E
 
 def occupancy_accuracy(gt, pred):
-    """Compute occupancy accuracy of (batched) torch tensors."""
-    return (1 - torch.nn.L1Loss()(gt, pred))
+    """Compute occupancy accuracy of numpy tensors."""
+    return (gt == pred).sum() / float(gt.size)
 
 def occupancy_iou(gt, pred):
-    """Compute occupancy iou of (batched) torch tensors."""
-    intersection = ((gt == pred) & (gt > 0)).sum((-1,-2,-3)).float()
-    union = gt.sum((-1,-2,-3)) + pred.sum((-1,-2,-3)) - intersection
-    union[union == 0] = 1
-    intersection[union == 0] = 1
-    return torch.mean((intersection / union))
+    """Compute occupancy iou of torch tensors."""
+    intersection = ((gt == pred) & (gt > 0)).sum().astype(float)
+    union = gt.sum() + pred.sum() - intersection
+    return intersection / union
 
 ################################################################################
 # Test Methods
@@ -128,9 +124,6 @@ def tester(args):
     if not os.path.exists(image_saved_path):
         os.makedirs(image_saved_path)
 
-    if args.use_visdom == True:
-        vis = visdom.Visdom()
-
     save_file_path = params.output_dir + '/' + args.model_name
     pretrained_file_path_G = save_file_path+'/'+'G.pth'
     pretrained_file_path_D = save_file_path+'/'+'D.pth'
@@ -179,29 +172,26 @@ def tester(args):
         # print (y_prob.item(), criterion(y_prob, y_real).item())
 
         ### visualization
-        if not args.use_visdom:
-            visualize_schematic(samples, image_saved_path, 'tester_norm_'+str(i))
+        visualize_schematic(samples, image_saved_path, 'tester_norm_'+str(i))
 
-            # format schematic
-            samples = samples.__ge__(0.3)
-            samples = np.squeeze(samples, 0)
+        # format schematic
+        samples = samples.__ge__(0.3)
+        samples = np.squeeze(samples, 0)
 
-            x, y, z = samples.shape
-            num_blocks = len(samples.nonzero()[0])
-            block_array = np.concatenate(
-                (np.ones((num_blocks, 1)), np.zeros((num_blocks, 1))),
-                axis=1
-            )
+        x, y, z = samples.shape
+        num_blocks = len(samples.nonzero()[0])
+        block_array = np.concatenate(
+            (np.ones((num_blocks, 1)), np.zeros((num_blocks, 1))),
+            axis=1
+        )
 
-            schematic = np.zeros((x, y, z, 2))
-            schematic[samples.nonzero()] = block_array
-            schem_dict = {'name':['patio'],'tags':['patio'], 'schematic':schematic}
+        schematic = np.zeros((x, y, z, 2))
+        schematic[samples.nonzero()] = block_array
+        schem_dict = {'name':['patio'],'tags':['patio'], 'schematic':schematic}
 
-            schem_save_path = os.path.join(params.images_dir, "patio_%d.pkl" % i)
-            with open(schem_save_path, 'wb') as f:
-                pkl.dump(schem_dict, f)
-        else:
-            plotVoxelVisdom(samples[0,:], vis, "tester_"+str(i))
+        schem_save_path = os.path.join(params.images_dir, "patio_%d.pkl" % i)
+        with open(schem_save_path, 'wb') as f:
+            pkl.dump(schem_dict, f)
  
 def save_embeddings(args):
 
@@ -427,14 +417,15 @@ def tester_embedding_probe(args):
     E.eval()
 
 
-    train_dsets = Craft3DDatasetAnno(params.data_dir, "train", remove="roof") 
+    train_dsets = Craft3DDatasetAnno(params.data_dir, "train", remove="roof", regress_types=True) 
     train_dset_loader1 = torch.utils.data.DataLoader(
-        train_dsets, batch_size=1, shuffle=False, num_workers=num_workers)
+        train_dsets, batch_size=1, shuffle=True, num_workers=num_workers)
     train_dset_loader2 = torch.utils.data.DataLoader(
         train_dsets, batch_size=3, shuffle=False, num_workers=num_workers)
 
     for i, (ref_pre, ref_post) in enumerate(tqdm(train_dset_loader1)):
 
+        ref_pre, ref_post = (ref_pre > 0).float(), (ref_post > 0).float()
         #ref_pre.to(params.device)
         #ref_post.to(params.device)
         zref_pre = E(ref_pre)
@@ -452,6 +443,10 @@ def tester_embedding_probe(args):
 
         for j, (X_pre, X_post) in enumerate(tqdm(train_dset_loader2)):
             
+            X_post_type = X_post[0].detach().numpy()
+            X_pre = (X_pre > 0).float()
+            X_post = (X_post > 0).float()
+
             #X_pre.to(params.device)
             #X_post.to(params.device)
             zX_pre, zX_post = E(X_pre), E(X_post)
@@ -466,7 +461,27 @@ def tester_embedding_probe(args):
             if len(Xhat.shape) < 4:
                 Xhat = Xhat.unsqueeze(0)
 
-            if j % 32 == 0:
+            if True: #j % 32 == 0:
+
+                def expand_block(vec):
+                    vec = np.expand_dims(vec, axis=-1)
+                    return np.concatenate((vec, np.zeros_like(vec)), axis=-1)
+                dom_block = scipy.stats.mode(
+                        X_post_type[X_post_type.nonzero()],
+                        axis=None)[0]
+                Xhat_type = (Xhat[0].detach().numpy() > .5).astype(float)
+                Xhat_type = Xhat_type * dom_block
+                Xhat_type[X_post_type > 0] = 0
+                Xhat_type = Xhat_type + X_post_type
+
+                X_post_type = expand_block(X_post_type)
+                Xhat_type = expand_block(Xhat_type)
+                np.save(
+                    params.images_dir+'/removed_roof_%d.npy' % j,
+                    X_post_type)
+                np.save(
+                    params.images_dir+'/pred_roof_%d.npy' % j,
+                    Xhat_type)
                 voxels = torch.cat((ref_post, X_post, ref_hat, Xhat))
                 voxels = voxels.detach().cpu().numpy()
                 visualize_schematic(voxels, image_saved_path, j+i)

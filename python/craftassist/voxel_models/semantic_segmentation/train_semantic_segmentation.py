@@ -68,6 +68,15 @@ def get_loss(x, y, yhat, loss):
     l = preloss.sum() / M
     return l
 
+def get_miou(y, yhat):
+    intersection = ((y == yhat) & (y > 0)).sum().float()
+    union = (y > 0).sum() + (yhat > 0).sum() - intersection
+    return (intersection / union) / len(torch.unique(y))
+
+def get_single_class_iou(y, yhat, cls):
+    intersection = ((y == yhat) & (y == cls)).sum().float()
+    union = (y == cls).sum() + (yhat == cls).sum() - intersection
+    return intersection / union
 
 def get_accuracy(y, yhat):
     vals, pred = torch.max(yhat, 1)
@@ -75,6 +84,23 @@ def get_accuracy(y, yhat):
     total_num = float(torch.numel(y))
     acc = correct_num / total_num
     return acc
+
+def validate_iou(model, validation_data, loss, args):
+    losses = []
+    ious = []
+    model.eval()
+    with torch.no_grad():
+        for x, y in validation_data:
+            if args.cuda:
+                x = x.cuda()
+                y = y.cuda()
+            yhat = model(x)
+            l = get_loss(x, y, yhat, loss)
+            yhat = yhat.max(1).indices
+            a = get_miou(y, yhat)
+            ious.append(a.item())
+            losses.append(l.item())
+    return losses, ious
 
 
 def validate(model: nn.Module, validation_data: DataLoader, loss, args):
@@ -103,7 +129,8 @@ def online_update(x, y, cls, model, loss, optimizer):
         y = y.cuda()
 
     # fetch cls index (if cls already exists return cls idx)
-    cls_idx = model.add_class_online(cls)
+    init = model.fetch_initialization(x, y)
+    cls_idx = model.add_class_online(cls, optimizer, init)
 
     # predict and remap indeices
     optimizer.zero_grad()
@@ -121,7 +148,6 @@ def online_update(x, y, cls, model, loss, optimizer):
     optimizer.step()
     
     return losses, accs
-
 
 
 def train_epoch(model, DL, loss, optimizer, args):

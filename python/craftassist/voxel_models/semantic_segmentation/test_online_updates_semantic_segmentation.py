@@ -130,7 +130,8 @@ if __name__ == "__main__":
         model.cuda()
         nll.cuda()
 
-    optimizer = optim.Adagrad(model.parameters(), lr=args.lr)
+    import pdb; pdb.set_trace()
+    optimizer = optim.SGD(model.parameters(), lr=args.lr)
 
     # run validation before
     #valid_losses, valid_accs = validate(model, valid_dl_prev, nll, args, "entryway")
@@ -138,22 +139,34 @@ if __name__ == "__main__":
 
     samples = []
     for k in to_keep:
-        samples.extend(train_data.get_all_x_with_class(k))
+        samples.extend([train_data.get_all_x_with_class(k)[0]])
     random.shuffle(samples)
     
     for i, (cls, cidx, b) in enumerate(samples):
         print("Updating sample {} out of {}".format(i+1, len(samples)))
+        model.train()
         x, y = b[0], b[1]
         x = x.unsqueeze(0)
         y = y.unsqueeze(0)
         y = y == cidx # convert type?
         online_update(x, y, cls, model, nll, optimizer)
 
+        # evaluate recall of single example
+        model.eval()
+        with torch.no_grad():
+            yhat = model(x).max(1).indices
+            yhat[x == 0] = 0
+            cidx = model.classes['name2idx'][cls]
+            print("IoU on updated sample: {}".format(
+                get_single_class_iou(y*cidx, yhat, cidx)
+            ))
+
     # run validation after
     for k in to_keep:
         valid_dl = train_data.get_all_x_with_class(k)
         valid_dl = [(b[0].unsqueeze(0),b[1].unsqueeze(0)) for _, _, b in valid_dl]
-        valid_losses, valid_accs = validate(model, valid_dl, nll, args)
+        import pdb; pdb.set_trace()
+        valid_losses, valid_accs = validate_iou(model, valid_dl, nll, args)
         print("Valid acc on homes with {}: {} / {}".format(k, sum(valid_accs), len(valid_accs)))
 
     if args.save_model != "":

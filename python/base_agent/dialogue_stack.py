@@ -64,7 +64,7 @@ class DialogueStack(object):
                     self.stack[-2].update_progeny_data(step_data)
 
             except NextDialogueStep:
-                return
+                return None, None
             except ErrorWithResponse as err:
                 self.stack[-1].finished = True
                 self.agent.send_chat(err.chat)

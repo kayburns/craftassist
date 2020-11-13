@@ -53,38 +53,64 @@ def plot_house(pth, house):
 
 class TransformationBank():
 
-    def __init__(self, pth):
+    def __init__(self, pth, load=False):
 
         self.save_path = os.path.join(pth, 'gen_bank.pkl')
-        self.load_tranformation_bank(self.save_path)
+        self.t_dict = {}
+        if load:
+            self.load_tranformation_bank(self.save_path)
 
     def load_tranformation_bank(self, pth):
-
-        self.t_dict = {}
+        
         if os.path.exists(pth):
             self.t_dict = pkl.load(open(pth, 'rb'))
 
-    def get_proposal(self, tag):
+    def get_proposal(self, label):
 
-        if tag in self.t_dict:
-            return self.t_dict[tag]
+        if label in self.t_dict:
+            return self.t_dict[label]
         else:
             return None
 
+    def contains(self, ref_obj):
+        return ref_obj in self.t_dict
 
+    def update(self, label, change_vector):
+        self.t_dict[label] = change_vector
 
 
 class GeneratorWrapper():
 
     def __init__(self):
 
-        save_file_path = params.output_dir
+        save_file_path = '/craftassist/python/threedhouses/models/ae_debug/'
         self.G, self.E = net_G_blocks([]), net_E([]) # args not used in model
         load_pretrained_GE(save_file_path, self.G, self.E)
-        #self.transformation_bank = TransformationBank(
-        #    '/craftassist/python/threedhouses/data/gen_bank/')
-        self.transformation_bank = Craft3DDatasetAnno(
-            params.data_dir, "train", remove="roof")
+        self.transformation_bank = TransformationBank(
+            '/craftassist/python/threedhouses/data/gen_bank/')
+        #self.transformation_bank = Craft3DDatasetAnno(
+        #    params.data_dir, "train", remove="roof")
+
+    def seen(self, ref_obj):
+        """Return true if ref_obj in memory store"""
+        return self.transformation_bank.contains(ref_obj)
+
+    def update(self, label, blocks, house):
+
+        # convert to 32 square cube
+        offsets = self.find_block_offsets(house)
+        X_pre = self.convert_blocks_to_arr(house, offsets)
+        X_post = self.convert_blocks_to_arr(house + blocks, offsets)
+
+        change_vector = self.fetch_change_vector(X_pre, X_post)
+        self.transformation_bank.update(label, change_vector)
+
+    def fetch_change_vector(self, X_pre, X_post):
+        X_pre = torch.from_numpy(X_pre).float()
+        X_post = torch.from_numpy(X_post).float()
+        zref_pre, zref_post = self.E(X_pre), self.E(X_post)
+
+        return zref_post - zref_pre
 
     def generate_build_proposal(self, X_pre):
 
@@ -104,27 +130,37 @@ class GeneratorWrapper():
 
         return Xhat.data.numpy()
 
-    def convert_blocks_to_arr(self, block_dict):
+    def find_block_offsets(self, blocks):
         # fetch all coordinates and block types from node
-        coords, blocks = list(block_dict.keys()), list(block_dict.values())
+        coords, blocks = zip(*blocks)
         blocks = [b[0] for b in blocks] # ignore meta block info
         coords = np.array(coords)
 
         # snap to corner
-        X_pre = np.zeros((64, 64, 64))
         min_coords, max_coords = coords.min(axis=0), coords.max(axis=0)
         xlen, zlen, ylen = max_coords - min_coords
-        coords = coords - min_coords
+        offsets = min_coords
 
         # standardize. format is (x, z, y). only standardize along (x, y)
-        x_std, y_std = max(0, 32 - (xlen//2)), max(0, 32 - (ylen//2))
-        coords = coords + [x_std, 0, y_std]
+        x_std, y_std = max(0, 16 - (xlen//2)), max(0, 16 - (ylen//2))
+        offsets = offsets - np.array([x_std, 0, y_std])
+
+        return offsets
+
+    def convert_blocks_to_arr(self, blocks, offsets):
+        coords, blocks = zip(*blocks)
+        blocks = [b[0] for b in blocks] # ignore meta block info
+        coords = np.array(coords)
+        coords = coords - offsets
         coords = tuple(coords.T)
-        X_pre[coords] = blocks
-        X_pre = np.transpose(X_pre, (1, 2, 0))
 
-        return X_pre, (min_coords, max_coords, x_std, y_std)
+        cube_len = 32
+        X = np.zeros([cube_len] * 3)
+        X[coords] = blocks
+        X = np.transpose(X, (1,2,0))
 
+        return X
+        
     def convert_arr_to_blocks(self, arr, shift):
         arr = np.transpose(arr,(2, 0, 1))
         min_coords, max_coords, x_std, y_std = shift

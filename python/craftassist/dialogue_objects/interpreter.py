@@ -20,6 +20,7 @@ from base_agent.dialogue_objects import (
     DialogueObject,
     ConfirmTask,
     ConfirmParse,
+    RequestChange,
     Say,
     SPEAKERLOOK
 )
@@ -249,14 +250,23 @@ class Interpreter(DialogueObject):
         else:
             location_name = None
 
-        # invoke conditional model
-        if location_name == 'house': # right now, only form for online learning
+        # check if schematic is known
+        try:
+            if not self.agent.generator.seen(schematic['has_name']):
+                self.dialogue_stack.append_new(RequestChange, schematic['has_name'])
+                raise NextDialogueStep()
+        except NextDialogueStep:
+            self.finished = True
+            return None, None
 
+        # else, invoke conditional model
+        if location_name == 'house': # right now, only form for online learning
             mems = interpret_reference_location(self, speaker, location_d)
             task_data = {
                 "ref_blocks": mems[0].blocks,
                 "ref_node_memid": mems[0].memid,
-                "location_dict": location_d
+                "location_dict": location_d,
+                "to_build": schematic['has_name']
             }
             logging.info("Added 1 FastBuild task to stack")
             self.append_new_task(tasks.FastBuild, task_data)

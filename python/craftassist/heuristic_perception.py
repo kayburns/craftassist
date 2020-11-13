@@ -20,7 +20,7 @@ from search import depth_first_search
 from mc_memory_nodes import InstSegNode, BlockObjectNode
 
 GROUND_BLOCKS = [1, 2, 3, 7, 8, 9, 12, 79, 80]
-MAX_RADIUS = 20
+MAX_RADIUS = 30
 BLOCK_DATA = minecraft_specs.get_block_data()
 COLOUR_DATA = minecraft_specs.get_colour_data()
 BLOCK_PROPERTY_DATA = minecraft_specs.get_block_property_data()

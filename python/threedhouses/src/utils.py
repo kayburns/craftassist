@@ -9,10 +9,7 @@ import scipy.ndimage as nd
 import scipy.io as io
 import matplotlib
 import params
-
-if params.device.type != 'cpu':
-    matplotlib.use('Agg')
-
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import skimage.measure as sk
 from mpl_toolkits import mplot3d

@@ -16,11 +16,9 @@ from datasets import Craft3DDataset, Craft3DDatasetAnno
 
 # added
 import datetime
-from tensorboardX import SummaryWriter
 import matplotlib.pyplot as plt
 import numpy as np
 import params
-import visdom
 import faiss
 from tqdm import tqdm
 import pickle as pkl

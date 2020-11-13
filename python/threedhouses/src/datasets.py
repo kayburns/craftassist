@@ -23,18 +23,16 @@ import requests
 import torch
 from torch.utils.data import Dataset
 
+F50_CLASSES = ['bookshelves', 'lights', 'wall', 'nothing', 'storage', 'floor', 'windows', 'porch', 'roof', 'bed', 'door', 'window', 'foundation', 'torch', 'table', 'grass', 'ground', 'fence', 'flower', 'light', 'deck', 'stairs', 'railing', 'ceiling', 'pillar', 'chest', 'walkway', 'workbench', 'flowers', 'garden', 'bookshelf', 'chimney', 'patio', 'box', 'chests', 'stone', 'ladder', 'skylight', 'stove', 'support', 'furnace', 'steps', 'counter', 'torches', 'column', 'bookcase', 'decor', 'furniture', 'step', 'yard', 'dirt', 'balcony', 'bush', 'entryway', 'pink cubes']
+
 class Craft3DDataset(Dataset):
 
     def __init__(
         self,
         data_dir: str,
         subset: str,
-        noise: list = [0],
-        regress_parts: bool = False,
-        regress_types: bool = False,
-        only_popular_parts: bool = False,
-        part_augment: bool = False,
-        remove: str = None
+        remove=F50_CLASSES,
+        block_dropout=[0, .1, .4]
    ):
         super().__init__()
         self.subset = subset
@@ -47,19 +45,27 @@ class Craft3DDataset(Dataset):
         elif subset == "valid":
             fname = "validation_data.pkl"
         fname = osp.join(self.data_dir, fname)
+        
+        self.unique_parts = defaultdict(lambda: 0)
         self.raw_items = self._load_raw(fname)
         
         # references to raw training data, with various augmentations specified
-        self.items = self._create_items()
+        self.items = self._create_items(self.raw_items, remove, block_dropout)
+
 
     def __getitem__(self, index):
-        raw_idx = self.items[index]
-        return
+        raw_idx, remove, dropout_p = self.items[index]
+        schematic, inst_schem, instid2label = self.raw_items[raw_idx]
+        # must call remove first because dropout is in place
+        schematic = self._remove(schematic, remove, inst_schem, instid2label)
+        schematic, _ = self._dropout(schematic, dropout_p)
+        return schematic, remove, dropout_p
 
     def __len__(self):
         return len(self.items)
     
     def _load_raw(self, fname):
+        self.max_dim = 0
         if not osp.isfile(fname):
             raise RuntimeError(f"Split file not found at: {fname}")
         with open(fname, "rb") as f:
@@ -67,29 +73,59 @@ class Craft3DDataset(Dataset):
 
         standardized_items = []
         for item in raw_items:
-            import pdb; pdb.set_trace()
             schematic = torch.from_numpy(item[0])
+            for dim in schematic.shape:
+                if dim > self.max_dim:
+                    self.max_dim = dim
             schematic = self._standardize(schematic.permute(1, 2, 0))
-            part_schem = torch.from_numpy(item[1])
-            part_schem = self._standardize(part_schem.permute(1, 2, 0))
-            standardized_items.append((schematic, part_schem))
+            inst_schem = torch.from_numpy(item[1])
+            inst_schem = self._standardize(inst_schem.permute(1, 2, 0))
+            instid2label = item[2]
+            standardized_items.append((schematic, inst_schem, instid2label))
 
-        return raw_items
+            # track occurence of part types across dataset
+            for label in set(instid2label):
+                self.unique_parts[label] += 1
+        
 
-    def _create_items(self):
-        return
+        return standardized_items
+
+    def _create_items(self, raw_items, parts_to_remove=["none"], dropout_ps=[0]):
+        items = []
+        
+        for i, raw_item in enumerate(raw_items):
+            to_remove = set(raw_item[2]+["none"]) & set(parts_to_remove)
+            for part in to_remove:
+                for dropout_p in dropout_ps:
+                    items.append((i, part, dropout_p))
+
+        return items
 
     def _standardize(self, annotation, noise=0):
-        standardized = torch.zeros(64, 64, 64)
+        standardized = torch.zeros(32, 32, 32)
         x, y, z = annotation.shape
         # centering with noise
-        noise_y = min(32 - (y//2) - 1, noise)
-        noise_z = min(32 - (z//2) - 1, noise)
-        y_idx = max(0, 32 - (y//2)+noise_y)
-        z_idx = max(0, 32 - (z//2)+noise_z)
+        noise_y = min(16 - (y//2) - 1, noise)
+        noise_z = min(16 - (z//2) - 1, noise)
+        y_idx = max(0, 16 - (y//2)+noise_y)
+        z_idx = max(0, 16 - (z//2)+noise_z)
         standardized[:x, y_idx:y_idx+y, z_idx:z_idx+z] = annotation
         return standardized
 
+    def _remove(self, schematic, label_to_remove, inst_schem, instid2label):
+        schematic = schematic.clone().detach() # schematic points to original tensor
+        for i, label in enumerate(instid2label):
+            if label == label_to_remove:
+                schematic[inst_schem == i] = 0
+        return schematic
+
+    def _dropout(self, schematic, p):
+        mask = (torch.rand(schematic.shape) > p).float()
+        schematic *= mask
+        return schematic, mask
+
+    def _print_statistics(self):
+        print("unique parts: ", len(self.unique_parts))
 
 class Craft3DDatasetAnno(Dataset):
 
@@ -98,7 +134,6 @@ class Craft3DDatasetAnno(Dataset):
         data_dir: str,
         subset: str,
         noise: list = [0],
-        regress_parts: bool = False,
         regress_types: bool = False,
         only_popular_parts: bool = False,
         part_augment: bool = False,
@@ -108,7 +143,6 @@ class Craft3DDatasetAnno(Dataset):
         self.data_dir = data_dir
         self.max_dim = 64
         self.subset = subset
-        self.regress_parts = regress_parts
         self.regress_types = regress_types
         self.only_popular_parts = only_popular_parts
         self.part_augment = part_augment
@@ -125,55 +159,28 @@ class Craft3DDatasetAnno(Dataset):
         self.unique_parts = defaultdict(lambda: 0)
         self.unique_types = defaultdict(lambda: 0)
         self._load_dataset()
-        self.popular_parts = {k:v for (k,v) in self.unique_parts.items() if v>50}
 
     def __len__(self) -> int:
         """ Get number of valid blocks """
-        return len(self._all_structures)
+        return len(self.all_structures)
 
     def __getitem__(
         self, index: int
     ) -> Tuple[Dict[str, torch.Tensor], Dict[str, torch.Tensor]]:
-        """ Get the index-th valid block
-        """
-        schem, seg_schem, part_labels, label, idxs = self._all_structures[index]
+        """ Get the index-th valid block"""
+        schem, seg_schem, label, idxs = self.all_structures[index]
 
         annotation = schem
-        if self.only_popular_parts:
-            idxs = {k:v for (k, v) in part_labels.items() if k in self.popular_parts}
-            idxs = sum(idxs.values(), [])
-            annotation = self.select_substructure(schem, seg_schem, idxs)
         if not self.regress_types:
             annotation = (annotation > 0).float()
         if self.remove:
-            idxs = {k:v for (k, v) in part_labels.items() if k == self.remove}
-            idxs = sum(idxs.values(), [])
             a2 = self.remove_substructure(schem, seg_schem, idxs)
-            a1, a2 = annotation.float(), (a2 > 0).float()
+            if not self.regress_types:
+                a2 = (a2 > 0).float()
+            a1, a2 = annotation.float(), a2
             return a1, a2
 
-        return annotation.float()
-
-    def print_statistics(self):
-        # use to inspect block types
-        blockname2count = {}
-        for name, bid in self.blockname2id.items():
-            if bid in self.unique_types:
-                blockname2count[name] = self.unique_types[bid]
-        blockname2count = {k: v for k, v in sorted(blockname2count.items(), key=lambda item: item[1])}
-        with open('block_type_counts.txt', 'w+')as f:
-            for k, v in blockname2count.items():
-                f.write(str(k) + ','+ str(v) + '\n')
-        #debug = [k for k in self.unique_types.keys() if not k in blockname2id.values()]
-        #self.blockid2count = {blockname2id[k]:v for (k,v) in blockname2count.items()}
-        #self.clsid2reducedclsid, i = {}, 0
-        #for bid, count in self.blockid2count:
-        #    if count > 410:
-        #        self.clsid2reducedclsid[self.blockid2clsid[bid]] = i
-        #        i += 1
-
-        print("Number of unique types: %d" % len(self.unique_types))
-        print("Number of unique parts: %d" % len(self.unique_parts))
+        return annotation
 
     def _load_dataset(self):
         if self.subset == "train":
@@ -185,46 +192,33 @@ class Craft3DDatasetAnno(Dataset):
             raise RuntimeError(f"Split file not found at: {splits_path}")
 
         with open(splits_path, "rb") as f:
-            _all_houses = pkl.load(f)
+            houses = pkl.load(f)
 
-        self._all_structures = []
-        for house in _all_houses:
-            schematic_all_blocks = torch.from_numpy(house[0])
-            schematic = torch.zeros_like(schematic_all_blocks)
-            part_schem = torch.from_numpy(house[1])
-
-            for elem in torch.unique(schematic_all_blocks):
-                schematic[schematic_all_blocks == elem] = self.blockid2clsid[elem.item()]
+        self.all_structures = []
+        for house in houses:
+            schematic, part_schem = house[0], house[1]
 
             # map instances to part labels
             part_labels = defaultdict(list)
             for i, label in enumerate(house[2][1:]):
                 part_labels[label].append(i+1)
-            for label in part_labels.keys():
-                self.unique_parts[label] += 1
 
-            # track unique block types
-            block_type_ids = torch.unique(schematic)
-            for blk_id in block_type_ids:
-                blk_id = blk_id.item()
-                self.unique_types[blk_id] += 1 
-
-            if self.regress_parts:
-                schematic = self.create_part_labels(part_schem, part_labels)
-
-            print("warning! remapping ignored")
-            schematic = schematic_all_blocks
-            schematic = self._standardize(schematic.permute(1, 2, 0))
-            part_schem = self._standardize(part_schem.permute(1, 2, 0))
+            schematic = self._standardize(np.transpose(schematic, (1, 2, 0)))
+            part_schem = self._standardize(np.transpose(part_schem, (1, 2, 0)))
             
-            self._all_structures.append(
-                (schematic, part_schem, part_labels, "house", list(range(256))))
+            if self.remove:
+                self.all_structures.append(
+                    (torch.from_numpy(schematic), torch.from_numpy(part_schem),\
+                        "house", part_labels[self.remove]))
+            else:
+                self.all_structures.append(
+                    (torch.from_numpy(schematic), torch.from_numpy(part_schem),\
+                        "house", []))
 
             if self.part_augment:
                 for label, idxs in part_labels.items():
-                    self._all_structures.append(
-                        (schematic, part_schem, part_labels, label, idxs))
-        self.print_statistics()
+                    self.all_structures.append(
+                        (schematic, part_schem, label, idxs))
 
     def create_part_labels(self, part_schem, part_labels):
         """Modifies part_schem in-place to create a new annotation with type
@@ -285,13 +279,14 @@ class Craft3DDatasetAnno(Dataset):
 
     def remove_substructure(self, schematic, part_schem, idxs):
         structure = torch.ones_like(schematic)
-        structure = structure * part_schem
+        structure = structure * schematic
         for idx in idxs:
             structure[part_schem == idx] = 0
         return structure
 
     def _standardize(self, annotation, noise=0):
-        standardized = torch.zeros(64, 64, 64)
+        """Centers a numpy array in a 64 x 64 x 64 cube."""
+        standardized = np.zeros((64, 64, 64))
         x, y, z = annotation.shape
         # centering with noise
         noise_y = min(32 - (y//2) - 1, noise)
