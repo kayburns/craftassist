@@ -410,7 +410,7 @@ class RequestChange(DialogueObject):
                 blocks = [(loc, b) for loc, b in blocks_changed.items()]
                 house = [(loc, b) for loc, b in self.house_blocks.items()]
                 self.agent.update_segmentation(label, blocks, house)
-                self.agent.update_generation(label, blocks, house)
+                #self.agent.update_generation(label, blocks, house)
                 output_data = {"response": "done"}
                 return "Thanks! I'll remember that in the future.", output_data
             else:

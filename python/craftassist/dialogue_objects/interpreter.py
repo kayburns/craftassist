@@ -8,6 +8,7 @@ import random
 from typing import Tuple, Dict, Any, Optional
 from word2number.w2n import word_to_num
 
+import math
 import sys
 import os
 
@@ -27,6 +28,7 @@ from base_agent.dialogue_objects import (
 from .interpreter_helper import (
     ErrorWithResponse,
     NextDialogueStep,
+    fetch_environment,
     get_block_type,
     get_holes,
     get_repeat_num,
@@ -242,40 +244,9 @@ class Interpreter(DialogueObject):
         return None, None
 
     def handle_build(self, speaker, d) -> Tuple[Optional[str], Any]:
-        # determine if build action is on house
-        location_d = d.get("location", SPEAKERLOOK)
-        schematic = d.get("schematic", None)
-        if location_d != SPEAKERLOOK:
-            location_name = location_d['reference_object']['filters']['has_name']
-        else:
-            location_name = None
 
-        # check if schematic is known
-        try:
-            if not self.agent.generator.seen(schematic['has_name']):
-                self.dialogue_stack.append_new(RequestChange, schematic['has_name'])
-                raise NextDialogueStep()
-        except NextDialogueStep:
-            self.finished = True
-            return None, None
-
-        # else, invoke conditional model
-        if location_name == 'house': # right now, only form for online learning
-            mems = interpret_reference_location(self, speaker, location_d)
-            task_data = {
-                "ref_blocks": mems[0].blocks,
-                "ref_node_memid": mems[0].memid,
-                "location_dict": location_d,
-                "to_build": schematic['has_name']
-            }
-            logging.info("Added 1 FastBuild task to stack")
-            self.append_new_task(tasks.FastBuild, task_data)
-
-            self.finished = True
-            return None, None
-
-        # OR, get the segment to build
-        elif "reference_object" in d:
+        # if referring to existing obj in environment
+        if "reference_object" in d:
             # handle copy
             repeat = get_repeat_num(d)
             objs = interpret_reference_object(
@@ -294,42 +265,72 @@ class Interpreter(DialogueObject):
             interprets = [
                 [list(obj.blocks.items()), obj.memid, tags] for (obj, tags) in zip(objs, tagss)
             ]
-        else:  # a schematic
-            if d.get("repeat") is not None:
-                repeat_dict = d
-            else:
-                repeat_dict = None
-            interprets = interpret_schematic(
-                self, speaker, d.get("schematic", {}), repeat_dict=repeat_dict
-            )
+        else:
+            # access a module
+            interprets = []
 
         # Get the locations to build
+        location_d = d.get("location", SPEAKERLOOK)
         mems = interpret_reference_location(self, speaker, location_d)
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
-        interprets_with_offsets = [
-            (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
-        ]
+        if len(interprets) > 0:
+            interprets_with_offsets = [
+                (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
+            ]
+            tasks_todo = []
+            for schematic, schematic_memid, tags, offset in interprets_with_offsets:
+                og = np.array(origin) + offset
+                task_data = {
+                    "blocks_list": schematic,
+                    "origin": og,
+                    "schematic_memid": schematic_memid,
+                    "schematic_tags": tags,
+                    "action_dict": d,
+                }
 
-        tasks_todo = []
-        for schematic, schematic_memid, tags, offset in interprets_with_offsets:
-            og = np.array(origin) + offset
+                tasks_todo.append(task_data)
+
+            for task_data in reversed(tasks_todo):
+                self.append_new_task(tasks.Build, task_data)
+            logging.info("Added {} Build tasks to stack".format(len(tasks_todo)))
+            self.finished = True
+            return None, None
+
+        else:
+            # check if schematic is known
+            schematic = d.get("schematic", None)
+            try:
+                if schematic is not None:
+                    if not self.agent.generator.seen(schematic['has_name']):
+                        self.dialogue_stack.append_new(RequestChange, schematic['has_name'])
+                        raise NextDialogueStep()
+            except NextDialogueStep:
+                self.finished = True
+                return None, None
+
+            import pdb; pdb.set_trace()
+            mem, update_times = fetch_environment(self, speaker)
+            blocks = list(mem.blocks.items())
+            #blocks = sorted(blocks, key=lambda xyzb: update_times[xyzb[0]])
+            def dist(xyzb):
+                x, y, z = xyzb[0]
+                ox, oy, oz = (4, 70, 6)
+                return math.sqrt((x - ox)**2 + (y - oy)**2 + (z - oz)**2)
+            blocks = sorted(blocks, key=dist, reverse=True)
             task_data = {
-                "blocks_list": schematic,
-                "origin": og,
-                "schematic_memid": schematic_memid,
-                "schematic_tags": tags,
-                "action_dict": d,
+                "ref_blocks": blocks,
+                "ref_node_memid": mem.memid,
+                "location_dict": {},
+                "to_build": schematic['has_name']
             }
+            logging.info("Added 1 FastBuild task to stack")
+            self.append_new_task(tasks.FastBuild, task_data)
 
-            tasks_todo.append(task_data)
-
-        for task_data in reversed(tasks_todo):
-            self.append_new_task(tasks.Build, task_data)
-        logging.info("Added {} Build tasks to stack".format(len(tasks_todo)))
-        self.finished = True
-        return None, None
+            self.finished = True
+            return None, None
+            
 
     def handle_freebuild(self, speaker, d) -> Tuple[Optional[str], Any]:
         # This handler handles the action where the agent can complete

@@ -184,6 +184,7 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, nargs=2, default=[256, 256])
     args = parser.parse_args()
 
+    import pdb; pdb.set_trace()
     render(
         args.npy_schematic,
         args.out_dir,

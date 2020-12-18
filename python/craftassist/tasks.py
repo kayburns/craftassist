@@ -590,7 +590,7 @@ class FastBuild(Task):
         self.ref_blocks = task_data["ref_blocks"]
         self.ref_node_memid = task_data["ref_node_memid"]
         self.last_stepped_time = agent.memory.get_time()
-        self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
+        #self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
         self.to_build = task_data["to_build"]
 
     def step(self, agent):
@@ -602,11 +602,14 @@ class FastBuild(Task):
             agent.send_chat("No generator defined. Is online learning enabled?")
             pass
 
-        import pdb; pdb.set_trace()
         schematic = agent.generator.get_proposal(self.ref_blocks, self.to_build)
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
+        for c, b in schematic:
+            build_command = "/build {} {} {} {}".format(b[0], *c)
+            agent.send_chat(build_command)
+        """
         if len(schematic) < 20:
             batches = 1
         else:
@@ -616,7 +619,8 @@ class FastBuild(Task):
             coords_to_remove = [str(c) for xyz in batch for c in xyz]
             build_command = "/build 20 " + " ".join(coords_to_remove)
             agent.send_chat(build_command)
-        agent.send_chat("I have built {}".format(self.ref_obj))
+        """
+        agent.send_chat("I have built {}".format(self.to_build))
         self.finished = True
 
     def undo(self, agent):

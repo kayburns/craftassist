@@ -20,7 +20,8 @@ from multiprocessing import set_start_method
 
 import mc_memory
 from dialogue_objects import GetMemoryHandler, PutMemoryHandler, Interpreter
-from visprim.src import build_proposal as build_proposal
+#from visprim.src import build_proposal as build_proposal
+from VoxelCNN import build_proposal
 
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)

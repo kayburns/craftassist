@@ -206,7 +206,6 @@ class SemSegWrapper:
         self.model.eval()
 
         if self.model.vocab:
-            logging.info("USING VOCAB")
             vocab = self.model.vocab
             vocab_blocks = np.zeros(blocks.shape[:-1])
             for x in range(blocks.shape[0]):
@@ -227,22 +226,15 @@ class SemSegWrapper:
                         
                         vocab_blocks[x,y,z] = id_
         else:
-            logging.info("NOT USING VOCAB")
             vocab_blocks = blocks[:, :, :, 0]
 
         blocks = torch.from_numpy(vocab_blocks)
         blocks, _, o = make_example_from_raw(blocks)
-        logging.info("OOOOOOOOOOOO: {}".format(o))
         blocks = blocks.unsqueeze(0)
         if self.cuda:
             blocks = blocks.cuda()
         y = self.model(blocks, T=T)
         _, mids = y.squeeze().max(0)
-        logging.info("IS WUG DETECTED: {}".format((mids==30).any()))
-        try:
-            logging.info("IS THIS YOUR CARD: {}, {}".format(y[0, :, 9, 6, 14], blocks[0, 9, 6, 14]))
-        except:
-            logging.info("NO CARD FOR YOU")
         locs = mids.nonzero()
         locs = locs.tolist()
         if self.blocks_only:

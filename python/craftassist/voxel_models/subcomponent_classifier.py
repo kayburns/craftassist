@@ -63,7 +63,6 @@ class SubcomponentClassifierWrapper:
             temp2loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
 
             for temp, loc2labels in temp2loc2labels.items():
-                logging.info("WUG IN LOC2LABELS: {}".format("wug" in loc2labels.values()))
                 loc2ids = dict(obj)
                 label2blocks = {}
 
@@ -140,7 +139,6 @@ class SubComponentClassifier(Process):
             temp2loc2labels = {}
             for temp in self.temps:
                 loc2labels = self._watch_single_object(tb, t=temp)
-                logging.info("WUG IN LOC2LABELS (pre): {}".format("wug" in loc2labels.values()))
                 if temp == self.true_temp:
                     for k in loc2labels.keys():
                         loc2labels[k].append("house")
@@ -177,23 +175,12 @@ class SubComponentClassifier(Process):
             """
             return (cube_loc[0] + offsets[0], cube_loc[1] + offsets[1], cube_loc[2] + offsets[2])
 
-        for block, bid in tuple_blocks:
-            if block == (-2, 69, 4):
-                logging.info("RELEVANT BLOCKS PRESENT WITH BLOCK TYPE: {}".format(bid))
         np_blocks, offsets = bu.blocks_list_to_npy(blocks=tuple_blocks, xyz=True)
 
         pred = self.model.segment_object(np_blocks, T=t)
 
         # convert prediction results to string tags
-        logging.info("OFFSETS: {}".format(offsets))
-        logging.info("TAGS: {}".format(self.model.tags))
-        obj = dict([(apply_offsets(loc, offsets), get_tags([p])) for loc, p in pred.items()])
-        try: 
-            logging.info("PREDS: {}".format(obj[(-2, 69, 4)]))
-        except KeyError:
-            logging.info("PASSED")
-            pass
-        return obj
+        return dict([(apply_offsets(loc, offsets), get_tags([p])) for loc, p in pred.items()])
 
     def recognize(self, list_of_tuple_blocks):
         """
