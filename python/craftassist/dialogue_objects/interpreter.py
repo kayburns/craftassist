@@ -116,6 +116,8 @@ class Interpreter(DialogueObject):
     
     def confirm_parse(self, action_def, chat):
         if len(self.progeny_data) == 0:
+            ## TODO
+            #return True
             self.dialogue_stack.append_new(ConfirmParse, chat, action_def)
             raise NextDialogueStep()
         else:
@@ -310,15 +312,18 @@ class Interpreter(DialogueObject):
                 self.finished = True
                 return None, None
 
-            import pdb; pdb.set_trace()
             mem, update_times = fetch_environment(self, speaker)
             blocks = list(mem.blocks.items())
-            #blocks = sorted(blocks, key=lambda xyzb: update_times[xyzb[0]])
-            def dist(xyzb):
-                x, y, z = xyzb[0]
-                ox, oy, oz = (4, 70, 6)
-                return math.sqrt((x - ox)**2 + (y - oy)**2 + (z - oz)**2)
-            blocks = sorted(blocks, key=dist, reverse=True)
+
+            if location_d == SPEAKERLOOK:
+                blocks = sorted(blocks, key=lambda xyzb: update_times[xyzb[0]])
+            else:
+                def dist(xyzb):
+                    x, y, z = xyzb[0]
+                    ox, oy, oz = origin
+                    return math.sqrt((x - ox)**2 + (y - oy)**2 + (z - oz)**2)
+                blocks = sorted(blocks, key=dist, reverse=True)
+
             task_data = {
                 "ref_blocks": blocks,
                 "ref_node_memid": mem.memid,
