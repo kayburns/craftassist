@@ -116,8 +116,9 @@ class Interpreter(DialogueObject):
     
     def confirm_parse(self, action_def, chat):
         if len(self.progeny_data) == 0:
-            ## TODO
-            #return True
+            # TODO
+            return True
+            import pdb; pdb.set_trace()
             self.dialogue_stack.append_new(ConfirmParse, chat, action_def)
             raise NextDialogueStep()
         else:
@@ -277,6 +278,7 @@ class Interpreter(DialogueObject):
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
+        import pdb; pdb.set_trace()
         if len(interprets) > 0:
             interprets_with_offsets = [
                 (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
@@ -315,7 +317,7 @@ class Interpreter(DialogueObject):
             mem, update_times = fetch_environment(self, speaker)
             blocks = list(mem.blocks.items())
 
-            if location_d == SPEAKERLOOK:
+            if location_d == False:
                 blocks = sorted(blocks, key=lambda xyzb: update_times[xyzb[0]])
             else:
                 def dist(xyzb):

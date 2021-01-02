@@ -602,6 +602,9 @@ class FastBuild(Task):
             agent.send_chat("No generator defined. Is online learning enabled?")
             pass
 
+        (x, y, z), _ = self.ref_blocks[-1]
+        agent.point_at([x, 0, z, x, 100, z])
+        agent.point_s_at([(x, y, z)])
         schematic = agent.generator.get_proposal(self.ref_blocks, self.to_build)
 
         # send command to remove specified blocks
@@ -636,7 +639,10 @@ class Destroy(Task):
         self.build_task = None
         self.DIG_REACH = task_data.get("DIG_REACH", 3)
         self.last_stepped_time = agent.memory.get_time()
-        self.ref_obj = task_data['action_dict']['reference_object']['filters']['has_name']
+        if 'action_dict' in task_data:
+            self.ref_obj = task_data['action_dict']['reference_object']['filters']['has_name']
+        else:
+            self.ref_obj = None
 
     def step(self, agent):
         # wait certain amount of ticks until issuing next step
