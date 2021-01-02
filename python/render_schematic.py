@@ -132,7 +132,8 @@ def render(
 
         if not no_chunky:
             call = [
-                "python",
+                sys.executable,
+                # "python",
                 "{}/python/minecraft_render/render.py".format(repo_home),
                 "--world",
                 world_dir,
