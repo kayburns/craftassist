@@ -27,7 +27,8 @@ parser.add_argument('--spp', type=int, default=100, help='samples per pixel')
 
 REPO_DIR = os.path.dirname(__file__)
 CHUNKY_DIR = os.path.join(REPO_DIR, 'chunky')
-SCENES_DIR = os.path.join(REPO_DIR, 'chunky/scenes')
+#SCENES_DIR = os.path.join(REPO_DIR, 'chunky/scenes')
+SCENES_DIR = os.path.join('/root/.chunky/scenes')
 
 
 def gen_scene_json(args, name):
