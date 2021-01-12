@@ -96,7 +96,7 @@ def render(
     if yaws is None:
         yaws = range(0, 360, 90)
     for yaw in yaws:
-        look = [yaw, 0]
+        look = [yaw, 45] # pitch
         look_xyz = to_unit_vec(*look)
 
         if schematic is not None:
@@ -131,6 +131,8 @@ def render(
             procs.append(subprocess.Popen(call))
 
         if not no_chunky:
+            npy_basename = os.path.basename(npy_file)
+            npy_basename = os.path.splitext(npy_basename)[0]
             call = [
                 sys.executable,
                 # "python",
@@ -138,7 +140,7 @@ def render(
                 "--world",
                 world_dir,
                 "--out",
-                "{}/chunky.{}.png".format(out_dir, yaw),
+                "{}/chunky_{}.{}.png".format(out_dir, npy_basename, yaw),
                 "--camera",
                 *camera,
                 "--look",
@@ -185,16 +187,18 @@ if __name__ == "__main__":
     parser.add_argument("--size", type=int, nargs=2, default=[256, 256])
     args = parser.parse_args()
 
-    render(
-        args.npy_schematic,
-        args.out_dir,
-        args.world,
-        args.seed,
-        args.no_chunky,
-        args.no_vision,
-        args.port,
-        args.distance,
-        args.yaws,
-        args.spp,
-        args.size,
-    )
+    for fname in glob.glob(args.npy_schematic+"/*.npy"):
+        render(
+            fname,
+            args.out_dir,
+            args.world,
+            args.seed,
+            args.no_chunky,
+            args.no_vision,
+            args.port,
+            args.distance,
+            args.yaws,
+            args.spp,
+            args.size,
+        )
+

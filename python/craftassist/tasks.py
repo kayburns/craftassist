@@ -590,7 +590,7 @@ class FastBuild(Task):
         self.ref_blocks = task_data["ref_blocks"]
         self.ref_node_memid = task_data["ref_node_memid"]
         self.last_stepped_time = agent.memory.get_time()
-        #self.ref_obj = task_data['location_dict']['reference_object']['filters']['has_name']
+        self.no_loc_given = not ('text_span' in task_data['location_dict'])
         self.to_build = task_data["to_build"]
 
     def step(self, agent):
@@ -605,7 +605,9 @@ class FastBuild(Task):
         (x, y, z), _ = self.ref_blocks[-1]
         agent.point_at([x, 0, z, x, 100, z])
         agent.point_s_at([(x, y, z)])
-        schematic = agent.generator.get_proposal(self.ref_blocks, self.to_build)
+        schematic = agent.generator.get_proposal(
+            self.ref_blocks, self.to_build, no_loc_given=self.no_loc_given
+        )
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time

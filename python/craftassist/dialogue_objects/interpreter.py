@@ -12,8 +12,6 @@ import math
 import sys
 import os
 
-from threedhouses.src import build_proposal as build_proposal
-
 BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "../..")
 sys.path.append(BASE_AGENT_ROOT)
 
@@ -278,7 +276,6 @@ class Interpreter(DialogueObject):
         origin, offsets = compute_locations(
             self, speaker, d, mems, objects=interprets, enable_geoscorer=True
         )
-        import pdb; pdb.set_trace()
         if len(interprets) > 0:
             interprets_with_offsets = [
                 (blocks, mem, tags, off) for (blocks, mem, tags), off in zip(interprets, offsets)
@@ -329,7 +326,7 @@ class Interpreter(DialogueObject):
             task_data = {
                 "ref_blocks": blocks,
                 "ref_node_memid": mem.memid,
-                "location_dict": {},
+                "location_dict": location_d,
                 "to_build": schematic['has_name']
             }
             logging.info("Added 1 FastBuild task to stack")
