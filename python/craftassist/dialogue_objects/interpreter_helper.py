@@ -624,12 +624,10 @@ def fetch_environment(interpreter, speaker):
     mems = mems[:2]
     interpreter.memory.update_recent_entities(mems) # why?
 
-    # get correct creation times for blocks
     mem = mems[0]
     blocks = mem.blocks
-    get_update_time = lambda xyz: interpreter.memory.get_block_object_by_xyz(xyz).update_times[xyz]
-    update_times = {xyz: get_update_time(xyz) for xyz, _ in blocks.items()}
-    return mem, update_times
+
+    return mem
 
 def strip_prefix(s, pre):
     if s.startswith(pre):

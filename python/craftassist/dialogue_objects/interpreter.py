@@ -311,17 +311,14 @@ class Interpreter(DialogueObject):
                 self.finished = True
                 return None, None
 
-            mem, update_times = fetch_environment(self, speaker)
+            mem = fetch_environment(self, speaker)
             blocks = list(mem.blocks.items())
 
-            if location_d == False:
-                blocks = sorted(blocks, key=lambda xyzb: update_times[xyzb[0]])
-            else:
-                def dist(xyzb):
-                    x, y, z = xyzb[0]
-                    ox, oy, oz = origin
-                    return math.sqrt((x - ox)**2 + (y - oy)**2 + (z - oz)**2)
-                blocks = sorted(blocks, key=dist, reverse=True)
+            def dist(xyzb):
+                x, y, z = xyzb[0]
+                ox, oy, oz = origin
+                return math.sqrt((x - ox)**2 + (y - oy)**2 + (z - oz)**2)
+            blocks = sorted(blocks, key=dist, reverse=True)
 
             task_data = {
                 "ref_blocks": blocks,
