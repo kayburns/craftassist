@@ -605,31 +605,23 @@ class FastBuild(Task):
         (x, y, z), _ = self.ref_blocks[-1]
         agent.point_at([x, 0, z, x, 100, z])
         agent.point_s_at([(x, y, z)])
-        schematic = agent.generator.get_proposal(
+        self.schematic = agent.generator.get_proposal(
             self.ref_blocks, self.to_build, no_loc_given=self.no_loc_given
         )
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
-        for c, b in schematic:
+        for c, b in self.schematic:
             build_command = "/build {} {} {} {}".format(b[0], *c)
             agent.send_chat(build_command)
-        """
-        if len(schematic) < 20:
-            batches = 1
-        else:
-            batches = len(schematic) // 20
-        for i in range(batches):
-            batch = schematic[i*20:(i+1)*20]
-            coords_to_remove = [str(c) for xyz in batch for c in xyz]
-            build_command = "/build 20 " + " ".join(coords_to_remove)
-            agent.send_chat(build_command)
-        """
         agent.send_chat("I have built {}".format(self.to_build))
         self.finished = True
 
     def undo(self, agent):
-        agent.send_chat("Sorry I don't know how to undo fast build actions :(")
+        for c, b in self.schematic:
+            destroy_command = "/destroy {} {} {}".format(*c)
+            agent.send_chat(destroy_command)
+        agent.send_chat("I have destroyed {}".format(self.to_build))
 
 
 
@@ -664,43 +656,14 @@ class Destroy(Task):
             destroy_command = "/destroy " + " ".join(coords_to_remove)
             agent.send_chat(destroy_command)
         agent.send_chat("I have destroyed {}".format(self.ref_obj))
-        """
-        origin = np.min([(x, y, z) for ((x, y, z), (b, m)) in self.schematic], axis=0)
-
-        def to_destroy_schm(block_list):
-            #Convert idm of block list to negative
-            #For each block ((x, y, z), (b, m)), convert (b, m) to (-1, 0) indicating
-            #it should be digged or destroyed.
-            #Args:
-            #- block_list: a list of ((x,y,z), (id, meta))
-            #Returns:
-            #- a block list of ((x,y,z), (-1, 0))
-
-            destroy_schm = [((x, y, z), (-1, 0)) for ((x, y, z), (b, m)) in block_list]
-            return destroy_schm
-
-        destroy_schm = to_destroy_schm(self.schematic)
-
-        self.build_task = Build(
-            agent,
-            {
-                "blocks_list": destroy_schm,
-                "origin": origin,
-                "force": True,
-                "verbose": False,
-                "embed": True,
-                "dig_message": self.dig_message,
-                "is_destroy_schm": not self.dig_message,
-                "DIG_REACH": self.DIG_REACH,
-            },
-        )
-        agent.memory.task_stack_push(self.build_task, parent_memid=self.memid)
-        """
         self.finished = True
 
     def undo(self, agent):
-        agent.send_chat("Sorry I don't know how to undo destroy actions :(")
-
+        for c, b in self.schematic:
+            build_command = "/build {} {} {} {}".format(b[0], *c)
+            agent.send_chat(build_command)
+        agent.send_chat("I have rebuilt the {}".format(self.ref_obj))
+ 
 class Undo(Task):
     def __init__(self, agent, task_data):
         super(Undo, self).__init__()
