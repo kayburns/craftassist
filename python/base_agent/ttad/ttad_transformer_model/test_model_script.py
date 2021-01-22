@@ -40,3 +40,5 @@ def get_beam_tree(chat, noop_thres=0.95, beam_size=5, well_formed_pen=1e2):
     else:
         tree = btr[0][0]
     return tree
+
+import pdb; pdb.set_trace()

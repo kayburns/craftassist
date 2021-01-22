@@ -591,7 +591,8 @@ class FastBuild(Task):
         self.ref_node_memid = task_data["ref_node_memid"]
         self.last_stepped_time = agent.memory.get_time()
         self.no_loc_given = not ('text_span' in task_data['location_dict'])
-        self.to_build = task_data["to_build"]
+        self.to_build = task_data["parse"]["schematic"]["has_name"]
+        self.size = task_data["parse"]["schematic"].get("has_size")
 
     def step(self, agent):
         # wait certain amount of ticks until issuing next step
@@ -605,8 +606,18 @@ class FastBuild(Task):
         (x, y, z), _ = self.ref_blocks[-1]
         agent.point_at([x, 0, z, x, 100, z])
         agent.point_s_at([(x, y, z)])
+        # determine number blocks predicted based on specified size
+        if self.size == "small":
+            steps = 5
+        elif self.size == "large":
+            steps = 50
+        elif self.size == "huge":
+            steps = 100
+        else:
+            steps = 20
+
         self.schematic = agent.generator.get_proposal(
-            self.ref_blocks, self.to_build, no_loc_given=self.no_loc_given
+            self.ref_blocks, self.to_build, steps=steps, no_loc_given=self.no_loc_given
         )
 
         # send command to remove specified blocks

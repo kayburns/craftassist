@@ -251,7 +251,7 @@ class ConfirmTask(DialogueObject):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
         if not self.asked:
-            self.dialogue_stack.append_new(AwaitResponse)
+            self.dialogue_stack.append_new(AwaitResponse, 5000)
             self.dialogue_stack.append_new(Say, self.question)
             self.asked = True
             return "", None

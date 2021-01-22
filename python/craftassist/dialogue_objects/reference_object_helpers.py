@@ -37,8 +37,8 @@ def compute_locations(interpreter, speaker, d, ref_mems, objects=[], enable_geos
     else:
         # hack to fix build 1 block underground!!!
         # FIXME should SPEAKER_LOOK deal with this?
-        if is_loc_speakerlook(location_d):
-            origin[1] += 1
+        # if is_loc_speakerlook(location_d):
+        #     origin[1] += 1
 
         if repeat_num > 1:
             offsets = get_repeat_arrangement(

@@ -41,6 +41,7 @@ function Initialize(Plugin)
     cPluginManager.AddHook(cPluginManager.HOOK_WORLD_TICK, OnWorldTick) -- 69
     -- cPluginManager.AddHook(cPluginManager.HOOK_MONSTER_MOVED, OnMonsterMoved) -- 70
     -- cPluginManager.AddHook(cPluginManager.HOOK_PLAYER_LOOK, OnPlayerLook) -- 71
+    cPluginManager.AddHook(cPluginManager.HOOK_EXECUTE_COMMAND, OnExecuteCommand) -- 72
 
 
     -- Open logfile and write version
@@ -400,3 +401,15 @@ function OnPlayerLook(player, yaw, pitch) -- 71
         pitch
     ))
 end
+
+function OnExecuteCommand(player, commandsplit, entirecommand) --72
+    local world = player:GetWorld()
+    LOGFILE:write(struct.pack('>BLLHs',
+        72,                         -- hook id
+        world:GetWorldAge(),        -- world tick
+        player:GetUniqueID(),       -- player id
+        string.len(entirecommand),  -- length of command
+        entirecommand
+    ))
+end
+

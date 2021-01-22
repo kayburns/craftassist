@@ -324,7 +324,8 @@ class Interpreter(DialogueObject):
                 "ref_blocks": blocks,
                 "ref_node_memid": mem.memid,
                 "location_dict": location_d,
-                "to_build": schematic['has_name']
+                "to_build": schematic['has_name'],
+                "parse":d
             }
             logging.info("Added 1 FastBuild task to stack")
             self.append_new_task(tasks.FastBuild, task_data)

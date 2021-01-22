@@ -196,6 +196,11 @@ class BaseLogReader:
             look = self.decoder.readLook()
             args += [eid, look]
 
+        elif hook_id == hooks.COMMAND:
+            eid = self.decoder.readLong()
+            chat = self.decoder.readString()
+            args += [eid, chat]
+
         else:
             print("Debug:", args)
             raise NotImplementedError("Not implemented: hook id {}".format(hook_id))
