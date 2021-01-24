@@ -1,10 +1,10 @@
 # syntax = docker/dockerfile:experimental
 # FROM nvidia/cudagl:10.1-base-ubuntu18.04 as base
-FROM soumith/pyrobot-and-habitat:latest as base
+FROM dhirajgandhi/pyrobot-and-habitat:1.0 as base
 
 RUN apt-get update && apt-get install -y \
     cmake \
-	curl \
+    curl \
     g++ \
     clang-format \
     git \
@@ -48,16 +48,8 @@ RUN conda create -n minecraft_env python==3.7.4 pip numpy scikit-learn==0.19.1 p
     conda init bash && \
     source ~/.bashrc && \
     source activate /root/miniconda3/envs/minecraft_env && \
-    curl https://raw.githubusercontent.com/fairinternal/minecraft/master/requirements.txt?token=ANXAMPCPGDKWBRT4VI2C7E27B6F54 -o requirements.txt && \
-    pip install -r requirements.txt && \
-    conda install -c conda-forge opencv && \
-    pip install webcolors==1.10 && \
-    pip install dlib==19.19.0 && \
-    pip install face_recognition && \
-    pip install facenet-pytorch && \
-    pip install filelock && \
-    conda install -c conda-forge quaternion && \
-    pip install cython && \
-    pip install Pyro4 && \
-    pip install -U 'git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI' && \
-    python -m pip install detectron2 -f https://dl.fbaipublicfiles.com/detectron2/wheels/cu101/torch1.4/index.html
+    curl https://raw.githubusercontent.com/fairinternal/minecraft/master/requirements.txt?token=ACU673CWOQIHUSRDZKKPHBC7VRQCW -o requirements_1.txt && \
+    curl https://raw.githubusercontent.com/fairinternal/minecraft/master/locobot/requirements.txt?token=ACU673GXV3LDEPHQ2CSWQEC7WWJG4 -o requirements_2.txt && \
+    echo -en '\n' >> requirements_1.txt && \
+    tail --lines=+2  requirements_2.txt >> requirements_1.txt && \
+    pip install -r requirements_1.txt
