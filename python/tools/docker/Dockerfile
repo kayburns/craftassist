@@ -28,17 +28,17 @@ RUN pip3 install torch
 
 
 # Install Git LFS
-COPY gitlfs_install.sh /gitlfs_install.sh
-RUN apt-get install -y software-properties-common  # for add-apt-repository
-RUN add-apt-repository ppa:git-core/ppa \
-        && bash /gitlfs_install.sh \
-        && apt-get install -y git-lfs \
-        && git lfs install
+# COPY gitlfs_install.sh /gitlfs_install.sh
+# RUN apt-get install -y software-properties-common  # for add-apt-repository
+# RUN add-apt-repository ppa:git-core/ppa \
+#         && bash /gitlfs_install.sh \
+#         && apt-get install -y git-lfs \
+#         && git lfs install
 
 
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
-RUN git lfs clone --recursive git@github.com:fairinternal/minecraft.git
+RUN git clone https://github.com/kayburns/craftassist.git
 WORKDIR minecraft
 RUN git checkout ${current_branch}
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
