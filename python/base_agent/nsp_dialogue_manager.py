@@ -130,18 +130,33 @@ class NSPDialogueManager(DialogueManager):
 
         # chat is a single line command
         speaker, chatstr = chat
-        preprocessed_chatstrs = preprocess.preprocess_chat(chatstr)
+        import pdb; pdb.set_trace()
+        if "def:" in chatstr:
+            preprocessed_chatstrs, dial_objs = [], []
+            chatstr = chatstr.replace("def:", "").split(";") # breaks with gt actions
+            for s in chatstr:
+                preprocessed_chatstrs.append(preprocess.preprocess_chat(s)[0])
+            self.remember_decomposition(
+                preprocessed_chatstrs[0], preprocessed_chatstrs[1:]
+            )
+            for chatstr in preprocessed_chatstrs[1:]:
+                logical_form = self.get_logical_form(s=chatstr, model=self.model)
+                dial_obj = self.handle_logical_form(speaker, logical_form, chatstr)
+                dial_objs.append(dial_obj)
+            return dial_objs
+        else:
+            preprocessed_chatstrs = preprocess.preprocess_chat(chatstr)
 
-        # Push appropriate DialogueObjects to stack if incomign chat
-        # is one of the scripted ones
-        if any([chat in self.botCapabilityQuery for chat in preprocessed_chatstrs]):
-            return BotCapabilities(**self.dialogue_object_parameters)
-        if any([chat in self.botGreetings for chat in preprocessed_chatstrs]):
-            return BotGreet(**self.dialogue_object_parameters)
+            # Push appropriate DialogueObjects to stack if incomign chat
+            # is one of the scripted ones
+            if any([chat in self.botCapabilityQuery for chat in preprocessed_chatstrs]):
+                return BotCapabilities(**self.dialogue_object_parameters)
+            if any([chat in self.botGreetings for chat in preprocessed_chatstrs]):
+                return BotGreet(**self.dialogue_object_parameters)
 
-        # NOTE: preprocessing in model code is different, this shouldn't break anything
-        logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
-        return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
+            # NOTE: preprocessing in model code is different, this shouldn't break anything
+            logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
+            return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
 
     def handle_logical_form(self, speaker: str, d: Dict, chatstr: str) -> Optional[DialogueObject]:
         """Return the appropriate DialogueObject to handle an action dict "d"
@@ -233,14 +248,7 @@ class NSPDialogueManager(DialogueManager):
 
         return d
 
-    def online_decomposition(self, chat, decomposition):
-        speaker, chatstr = chat
-        decompositions = decomposition.split(";")
-        dial_objs = []
-        x_reps = self.model.get_reps(chatstr)
-        self.model.decomposition_model.update(x_reps, decompositions)
-        for decomp in decompositions:
-            dial_objs.append(self.maybe_get_dialogue_obj((speaker, decomp)))
-        for dial_obj in dial_objs[::-1]:
-            self.dialogue_stack.append(dial_obj)
+    def remember_decomposition(self, chat, decomposition):
+        x_reps = self.model.get_reps(chat)
+        self.model.decomposition_model.update(x_reps, decomposition)
 

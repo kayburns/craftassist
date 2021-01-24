@@ -78,7 +78,10 @@ class DialogueManager(object):
             # the stack should continue.
             # TODO: Maybe we need a HoldOn dialogue object?
             obj = self.maybe_get_dialogue_obj(chat)
-            if obj is not None:
+            if type(obj) == list:
+                for dial_obj in obj[::-1]:
+                    self.dialogue_stack.append(dial_obj)
+            elif obj is not None:
                 self.dialogue_stack.append(obj)
 
         # Always call dialogue_stack.step(), even if chat is empty
