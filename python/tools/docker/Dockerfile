@@ -40,7 +40,7 @@ ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
 RUN git clone git@github.com:kayburns/craftassist.git
 WORKDIR minecraft
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
-RUN mkdir python/craftassist/models/
+RUN mkdir /craftassist/python/craftassist/models/
 RUN tar -xzvf models_folder.tar.gz -C /craftassist/python/craftassist/models/ --strip-components 1
 RUN make
 
