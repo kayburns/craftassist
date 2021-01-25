@@ -1,9 +1,9 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
 FROM shaomai/craftassist:latest as base
 
-COPY mcdeploy.key /mcdeploy.key
-COPY AWS_S3_ACCESS_KEY_ID.txt /AWS_S3_ACCESS_KEY_ID.txt
-COPY AWS_S3_SECRET_ACCESS_KEY.txt /AWS_S3_SECRET_ACCESS_KEY.txt
+COPY python/tools/docker/mcdeploy.key /mcdeploy.key
+COPY python/tools/docker/AWS_S3_ACCESS_KEY_ID.txt /AWS_S3_ACCESS_KEY_ID.txt
+COPY python/tools/docker/AWS_S3_SECRET_ACCESS_KEY.txt /AWS_S3_SECRET_ACCESS_KEY.txt
 ARG current_branch
 
 # Clone/make repo
