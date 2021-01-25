@@ -7,7 +7,7 @@ all: build
 build: craftassist
 
 craftassist:
-	docker build ${ARGS} . -f Dockerfile -t craftassist
+	docker build ${ARGS} . -f Dockerfile.client -t craftassist
 	docker tag $@ $@:${COMMIT_SHA}
 	docker tag $@ ${REMOTE}/$@
 	docker tag $@ ${REMOTE}/$@:${COMMIT_SHA}
