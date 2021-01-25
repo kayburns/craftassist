@@ -8,13 +8,13 @@ ARG current_branch
 
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
-RUN git clone --recursive git@github.com:facebookresearch/droidlet.git
-WORKDIR droidlet
+RUN git clone --recursive git@github.com:kayburns/craftassist.git
+WORKDIR craftassist
 RUN git checkout ${current_branch}
-RUN mkdir -p craftassist/agent/models/
+RUN mkdir -p python/craftassist/models/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
 RUN tar -xzvf models_folder.tar.gz -C craftassist/agent/models/ --strip-components 1
-RUN mkdir -p craftassist/agent/datasets/
+RUN mkdir -p python/craftassist/datasets/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/datasets_folder.tar.gz -o datasets_folder.tar.gz 
 RUN tar -xzvf datasets_folder.tar.gz -C craftassist/agent/datasets/ --strip-components 1
 
