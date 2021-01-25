@@ -41,7 +41,7 @@ RUN git clone git@github.com:kayburns/craftassist.git
 WORKDIR minecraft
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
 RUN mkdir python/craftassist/models/
-RUN tar -xzvf models_folder.tar.gz -C python/craftassist/models/ --strip-components 1
+RUN tar -xzvf models_folder.tar.gz -C /craftassist/python/craftassist/models/ --strip-components 1
 RUN make
 
 RUN pip3 install -r requirements.txt
