@@ -31,7 +31,7 @@ RUN pip3 install torch
 # Clone/make repo
 # RUN git lfs clone --recursive https://github.com/facebookresearch/craftassist.git
 # WORKDIR /craftassist
-RUN git clone https://github.com/kayburns/craftassist.git
+RUN git clone git@github.com:kayburns/craftassist.git
 WORKDIR minecraft
 
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz

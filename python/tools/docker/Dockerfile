@@ -38,7 +38,7 @@ RUN pip3 install torch
 
 # Clone/make repo
 ENV GIT_SSH_COMMAND "ssh -i /mcdeploy.key -o StrictHostKeyChecking=no"
-RUN git clone https://github.com/kayburns/craftassist.git
+RUN git clone git@github.com:kayburns/craftassist.git
 WORKDIR minecraft
 RUN git checkout ${current_branch}
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
