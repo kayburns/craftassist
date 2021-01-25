@@ -13,10 +13,10 @@ WORKDIR craftassist
 RUN git checkout ${current_branch}
 RUN mkdir -p python/craftassist/models/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
-RUN tar -xzvf models_folder.tar.gz -C craftassist/agent/models/ --strip-components 1
+RUN tar -xzvf models_folder.tar.gz -C python/craftassist/models/ --strip-components 1
 RUN mkdir -p python/craftassist/datasets/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/datasets_folder.tar.gz -o datasets_folder.tar.gz 
-RUN tar -xzvf datasets_folder.tar.gz -C craftassist/agent/datasets/ --strip-components 1
+RUN tar -xzvf datasets_folder.tar.gz -C python/craftassist/datasets/ --strip-components 1
 
 RUN pip3 install -r requirements.txt
 
