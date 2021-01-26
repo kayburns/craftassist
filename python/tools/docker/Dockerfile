@@ -35,7 +35,7 @@ WORKDIR workdir
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-COPY run.fromenv.sh /run.fromenv.sh
+COPY python/tools/docker/run.fromenv.sh /run.fromenv.sh
 
 EXPOSE 3000
 EXPOSE 2556
