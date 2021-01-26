@@ -26,7 +26,7 @@ RUN export CCACHE_DIR="/cache/.ccache"
 RUN git submodule update --init --recursive
 RUN make
 RUN tar -cvzf client_ccache.tar.gz /cache/.ccache
-RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
+# RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
 
 
 RUN mkdir workdir
