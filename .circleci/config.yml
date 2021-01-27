@@ -38,11 +38,11 @@ jobs:
           name: Build docker containers
           command: make -C python/tools/docker build
 
-      - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            sh ./tools/codetools/check_and_fix_black_failures.sh --ci
+      # - run:
+          # name: Python style checks (black and awscli)
+          # command: |
+            # pip3 install $(cat requirements.txt | grep -e black -e awscli)
+            # sh ./tools/codetools/check_and_fix_black_failures.sh --ci
 
       # - run:
           # name: Python unit tests
