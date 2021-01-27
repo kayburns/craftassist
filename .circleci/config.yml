@@ -17,44 +17,6 @@ jobs:
       - checkout
 
       - run:
-          name: Get branch env variable
-          command: |
-            echo 'export DOCKER_BUILD_ARGS="--build-arg current_branch=${CIRCLE_BRANCH}"' >> $BASH_ENV
-
-      - run:
-          name: Deploy Github key
-          command: |
-            echo ${MCDEPLOY_KEY_B64} | base64 -d > python/tools/docker/mcdeploy.key
-            chmod 400 python/tools/docker/mcdeploy.key
-
-      - run:
-          name: Deploy AWS S3 access key
-          command: |
-            echo ${AWS_S3_ACCESS_KEY_ID} > python/tools/docker/AWS_S3_ACCESS_KEY_ID.txt
-            echo ${AWS_S3_SECRET_ACCESS_KEY} > python/tools/docker/AWS_S3_SECRET_ACCESS_KEY.txt
-
-      - setup_remote_docker
-      - run:
-          name: Build docker containers
-          command: make -C python/tools/docker build
-
-      - run:
-          name: Python style checks (black and awscli)
-          command: |
-            pip3 install $(cat requirements.txt | grep -e black -e awscli)
-            # sh ./tools/codetools/check_and_fix_black_failures.sh --ci
-
-      # - run:
-          # name: Python unit tests
-          # command: |
-              # mkdir shared
-              # docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
-              # docker cp mc-tests:/shared shared
-              # pip3 install codecov
-              # CODECOV_TOKEN="318c7f7e-54eb-4692-8651-8ea48857c3a7"
-              # bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
-
-      - run:
           name: Push versioned docker containers
           command: |
             aws configure set default.region us-east-2
