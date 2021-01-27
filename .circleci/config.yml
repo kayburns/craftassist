@@ -34,6 +34,9 @@ jobs:
             echo ${AWS_S3_SECRET_ACCESS_KEY} > python/tools/docker/AWS_S3_SECRET_ACCESS_KEY.txt
 
       - setup_remote_docker
+      - run:
+          name: Build docker containers
+          command: make -C python/tools/docker build
 
       - run:
           name: Python style checks (black and awscli)
@@ -54,13 +57,10 @@ jobs:
       - run:
           name: Push versioned docker containers
           command: |
-            echo "start"
             aws configure set default.region us-east-2
             aws configure set aws_access_key_id ${AWS_S3_ACCESS_KEY_ID}
             aws configure set aws_secret_access_key ${AWS_S3_SECRET_ACCESS_KEY}
-            echo "configured"
             python/tools/docker/login.sh
-            echo "logged in"
             make -C python/tools/docker push-versioned
 
       # - run:
