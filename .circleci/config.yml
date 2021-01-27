@@ -14,7 +14,22 @@ jobs:
             add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
             apt update
             apt install -y docker-ce docker-ce-cli containerd.io
-      - checkout
+
+      - run:
+          name: Python style checks (black and awscli)
+          command: |
+            pip3 install $(cat requirements.txt | grep -e black -e awscli)
+            # sh ./tools/codetools/check_and_fix_black_failures.sh --ci
+
+      # - run:
+          # name: Python unit tests
+          # command: |
+              # mkdir shared
+              # docker run --name mc-tests -v $(pwd):/shared -w /shared --entrypoint=/droidlet/craftassist/test.sh craftassist
+              # docker cp mc-tests:/shared shared
+              # pip3 install codecov
+              # CODECOV_TOKEN="318c7f7e-54eb-4692-8651-8ea48857c3a7"
+              # bash <(curl -s https://codecov.io/bash) -t $CODECOV_TOKEN -s "shared" -f 'test*.xml' -n "locobot tests"|| echo "Codecov did not collect coverage reports"
 
       - run:
           name: Push versioned docker containers
