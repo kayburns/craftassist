@@ -32,6 +32,7 @@ logging.getLogger().setLevel(logging.INFO)
 
 AWS_ACCESS_KEY_ID = os.environ["AWS_ACCESS_KEY_ID"]
 AWS_SECRET_ACCESS_KEY = os.environ["AWS_SECRET_ACCESS_KEY"]
+os.environ['AWS_DEFAULT_REGION'] = 'us-west-1'
 
 SUBNET_IDS = ["subnet-bee9d9d9"]
 SECURITY_GROUP_IDS = ["sg-04ec8fa6e1d91d460"]
