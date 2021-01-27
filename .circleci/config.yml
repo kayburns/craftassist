@@ -57,6 +57,9 @@ jobs:
       - run:
           name: Push versioned docker containers
           command: |
+            aws configure set default.region us-eas-2
+            aws configure set ${AWS_S3_ACCESS_KEY_ID}
+            aws configure set ${AWS_S3_SECRET_ACCESS_KEY}
             python/tools/docker/login.sh
             make -C python/tools/docker push-versioned
 
