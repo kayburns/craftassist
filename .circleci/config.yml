@@ -57,16 +57,16 @@ jobs:
       - run:
           name: Push versioned docker containers
           command: |
-            tools/docker/login.sh
-            make -C tools/docker push-versioned
+            python/tools/docker/login.sh
+            make -C python/tools/docker push-versioned
 
-      - run:
-          name: Pull docker image
-          command: |
-            set -ex
-            export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:5.0
-            echo Pulling docker image $DOCKER_IMAGE
-            docker pull $DOCKER_IMAGE >/dev/null
+      # - run:
+          # name: Pull docker image
+          # command: |
+            # set -ex
+            # export DOCKER_IMAGE=theh1ghwayman/locobot-assistant:5.0
+            # echo Pulling docker image $DOCKER_IMAGE
+            # docker pull $DOCKER_IMAGE >/dev/null
 
 workflows:
   build:
