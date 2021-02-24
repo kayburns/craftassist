@@ -12,7 +12,7 @@ BASE_AGENT_ROOT = os.path.join(os.path.dirname(__file__), "..")
 sys.path.append(BASE_AGENT_ROOT)
 
 from base_agent.memory_nodes import PlayerNode
-from mc_memory_nodes import BlockObjectNode
+from mc_memory_nodes import BlockObjectNode, InstSegNode
 
 
 class LowLevelMCPerception:
@@ -157,8 +157,19 @@ class LowLevelMCPerception:
             # normal block added
             adjacent_memids = [a[0][0] for a in adjacent if len(a) > 0 and a[0][1] > 0]
         adjacent_memids = list(set(adjacent_memids))
-        # always create new objects for player placed blocks for ref obj id-ing
-        if len(adjacent_memids) == 0 or player_placed:
+
+        if idm[0] != 0:
+            # find memid for house
+            house_memid = self.memory.get_memids_by_tag('house')
+            # modify house node
+            if len(house_memid) > 0:
+                InstSegNode.add_block_to_seg(
+                    self.memory, xyz, idm, house_memid[0]
+                )
+                self.memory.set_memory_updated_time(house_memid[0])
+                self.memory.set_memory_attended_time(house_memid[0])
+
+        if len(adjacent_memids) == 0:
             # new block object
             BlockObjectNode.create(self.agent.memory, [(xyz, idm)])
         elif len(adjacent_memids) == 1:

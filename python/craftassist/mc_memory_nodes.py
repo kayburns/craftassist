@@ -207,6 +207,13 @@ class InstSegNode(VoxelObjectNode):
             if tag[2][0] != "_":
                 self.tags.append(tag[2])
 
+    @classmethod
+    def add_block_to_seg(cls, memory, xyz, b, memid):
+        cmd = "INSERT INTO VoxelObjects (uuid, x, y, z, bid, meta, ref_type) VALUES ( ?, ?, ?, ?, ?, ?, ?)"
+        memory._db_write(
+            cmd, memid, xyz[0], xyz[1], xyz[2], b[0], b[1], "inst_seg"
+        )
+   
     def __repr__(self):
         return "<InstSeg Node @ {} with tags {} >".format(self.locs, self.tags)
 

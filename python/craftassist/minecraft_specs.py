@@ -66,23 +66,6 @@ def get_bid_to_colours():
             bid_to_colors[item] = color
     return bid_to_colors
 
-
-def get_schematics(limit=-1):
-    """Return a list of {'schematic': npy array, 'tags': tags, 'name': names} dicts"""
-    schem_dir = os.path.join(PATH, "schematics")
-    s = []
-    for fname in os.listdir(schem_dir):
-        fullname = os.path.join(schem_dir, fname)
-        if not os.path.isdir(fullname):
-            with open(fullname, "rb") as f:
-                schematic_premem = pickle.load(f)
-            assert type(schematic_premem["schematic"]) is np.ndarray
-            s.append(schematic_premem)
-    if limit > 0:
-        s = np.random.permute(s)[:limit]
-    return s
-
-
 def _pickle_load(relpath):
     with open(os.path.join(PATH, relpath), "rb") as f:
         return pickle.load(f)

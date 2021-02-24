@@ -196,8 +196,9 @@ class CraftAssistAgent(LocoMCAgent):
                     xok = x < pt[0] or x > pt[3]
                     yok = y < pt[1] or y > pt[4]
                     zok = z < pt[2] or z > pt[5]
-                    if xok and yok and zok:
-                        safe_blocks.append(b)
+                    if xok or yok or zok:
+                        if b[1][0] != 95 or b[1][1] != 4: # bad hack
+                            safe_blocks.append(b)
         else:
             safe_blocks = blocks
         return safe_blocks

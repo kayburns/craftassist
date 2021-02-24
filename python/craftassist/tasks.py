@@ -604,7 +604,6 @@ class FastBuild(Task):
             pass
 
         (x, y, z), _ = self.ref_blocks[-1]
-        agent.point_at([x, 0, z, x, 100, z])
         agent.point_s_at([(x, y, z)])
         # determine number blocks predicted based on specified size
         if self.size == "small":
@@ -622,7 +621,11 @@ class FastBuild(Task):
 
         # send command to remove specified blocks
         # minecraft thresholds chat sizes, so stick to 20 at a time
+        self.removed = []
         for c, b in self.schematic:
+            for co, bo in self.ref_blocks:
+                if co == c:
+                    self.removed.append((co, bo))
             build_command = "/build {} {} {} {}".format(b[0], *c)
             agent.send_chat(build_command)
         agent.send_chat("I have built {}".format(self.to_build))
@@ -632,7 +635,10 @@ class FastBuild(Task):
         for c, b in self.schematic:
             destroy_command = "/destroy {} {} {}".format(*c)
             agent.send_chat(destroy_command)
-        agent.send_chat("I have destroyed {}".format(self.to_build))
+        for c, b in self.removed:
+            build_command = "/build {} {} {} {}".format(b[0], *c)
+            agent.send_chat(build_command)
+        agent.send_chat("I have undone {}".format(self.to_build))
 
 
 

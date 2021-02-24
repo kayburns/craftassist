@@ -77,7 +77,6 @@ class MCAgentMemory(AgentMemory):
         )
         self.banned_default_behaviors = []  # FIXME: move into triple store?
         self._safe_pickle_saved_attrs = {}
-        self._load_schematics(load_minecraft_specs)
         self._load_block_types(load_block_types)
         self._load_mob_types(load_mob_types)
 
@@ -326,33 +325,6 @@ class MCAgentMemory(AgentMemory):
             self.add_triple(subj=memid, pred_text="_source_block_object", obj=block_object.memid)
 
             return self.get_schematic_by_id(memid)
-
-    def _load_schematics(self, load_minecraft_specs=True):
-        if load_minecraft_specs:
-            for premem in minecraft_specs.get_schematics():
-                npy = premem["schematic"]
-                memid = SchematicNode.create(self, npy_to_blocks_list(npy))
-                if premem.get("name"):
-                    for n in premem["name"]:
-                        self.add_triple(subj=memid, pred_text="has_name", obj_text=n)
-                        self.add_triple(subj=memid, pred_text="has_tag", obj_text=n)
-                if premem.get("tags"):
-                    for t in premem["tags"]:
-                        self.add_triple(subj=memid, pred_text="has_tag", obj_text=t)
-
-        # load single blocks as schematics
-        bid_to_name = minecraft_specs.get_block_data()["bid_to_name"]
-        for (d, m), name in bid_to_name.items():
-            if d >= 256:
-                continue
-            memid = SchematicNode.create(self, [((0, 0, 0), (d, m))])
-            self.add_triple(subj=memid, pred_text="has_name", obj_text=name)
-            if "block" in name:
-                self.add_triple(
-                    subj=memid, pred_text="has_name", obj_text=name.strip("block").strip()
-                )
-            # tag single blocks with 'block'
-            self.add_triple(subj=memid, pred_text="has_name", obj_text="block")
 
     def _load_block_types(
         self,

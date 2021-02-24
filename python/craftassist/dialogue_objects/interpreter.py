@@ -19,6 +19,7 @@ from base_agent.dialogue_objects import (
     DialogueObject,
     ConfirmTask,
     ConfirmParse,
+    AskForHint,
     RequestChange,
     Say,
     SPEAKERLOOK
@@ -102,9 +103,8 @@ class Interpreter(DialogueObject):
             response = {} #TODO
             for action_def in actions:
                 chat = (self.speaker, self.chatstr)
-                if self.confirm_parse(action_def, chat):
-                    action_type = action_def["action_type"]
-                    response = self.action_handlers[action_type](self.speaker, action_def)
+                action_type = action_def["action_type"]
+                response = self.action_handlers[action_type](self.speaker, action_def)
             return response
         except NextDialogueStep:
             return None, None
@@ -120,7 +120,7 @@ class Interpreter(DialogueObject):
             self.dialogue_stack.append_new(ConfirmParse, chat, action_def)
             raise NextDialogueStep()
         else:
-            r = self.progeny_data.pop(-1)["response"]
+            r = self.progeny_data.pop(-1)[0]["response"]
             if r == "yes":
                 return True
             else:
@@ -172,20 +172,17 @@ class Interpreter(DialogueObject):
         old_task = self.memory.get_last_finished_root_task(task_name)
         if old_task is None:
             raise ErrorWithResponse("Nothing to be undone ...")
-        undo_tasks = [tasks.Undo(self.agent, {"memid": old_task.memid})]
+        #undo_tasks = [tasks.Undo(self.agent, {"memid": old_task.memid})]
+        #undo_command = old_task.get_chat().chat_text
+        #logging.info("Pushing ConfirmTask tasks={}".format(undo_tasks))
+        #self.dialogue_stack.append_new(
+        #    ConfirmTask,
+        #    'Do you want me to undo the command: "{}" ?'.format(undo_command),
+        #    undo_tasks,
+        #)
 
-        #        undo_tasks = [
-        #            tasks.Undo(self.agent, {"memid": task.memid})
-        #            for task in old_task.all_descendent_tasks(include_root=True)
-        #        ]
-        undo_command = old_task.get_chat().chat_text
-
-        logging.info("Pushing ConfirmTask tasks={}".format(undo_tasks))
-        self.dialogue_stack.append_new(
-            ConfirmTask,
-            'Do you want me to undo the command: "{}" ?'.format(undo_command),
-            undo_tasks,
-        )
+        undo_task = tasks.Undo(self.agent, {"memid": old_task.memid})
+        self.dialogue_stack.append_new(undo_tasks)
         self.finished = True
         return None, None
 
@@ -271,6 +268,16 @@ class Interpreter(DialogueObject):
             interprets = []
 
         # Get the locations to build
+        if "location" not in d:
+            try:
+                if len(self.progeny_data) == 0:
+                    self.dialogue_stack.append_new(AskForHint, d)
+                    raise NextDialogueStep()
+                else:
+                    self.progeny_data.pop(-1)
+            except NextDialogueStep:
+                return None, None
+
         location_d = d.get("location", SPEAKERLOOK)
         mems = interpret_reference_location(self, speaker, location_d)
         origin, offsets = compute_locations(

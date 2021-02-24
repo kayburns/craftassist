@@ -28,7 +28,7 @@ class DialogueObject(object):
         raise NotImplementedError("Subclasses must implement step()")
 
     def update_progeny_data(self, data):
-        self.progeny_data.append(data)
+        self.progeny_data.append(('', data))
 
     def check_finished(self):
         """Check if the object is finished processing."""
@@ -328,6 +328,35 @@ class ConfirmParse(DialogueObject):
         else:
             output_data = {"response": "unknown"}
         return "", output_data
+
+class AskForHint(DialogueObject):
+    def __init__(self, d, **kwargs):
+        super().__init__(**kwargs)
+        ref_obj = d['schematic']['has_name']
+        # TODO, make human readable
+        self.question = "I need a hint to build a {}. " \
+            "Can you build a structure or point to where I should start and " \
+            "say \"hint\" once you're done.".format(ref_obj)
+        self.asked = False
+
+    def step(self):
+        """Ask a confirmation question and wait for response."""
+        # Step 1: ask the question
+        if not self.asked:
+            self.dialogue_stack.append_new(AwaitResponse, 10000)
+            self.dialogue_stack.append_new(Say, self.question)
+            self.asked = True
+            return "", None
+
+        # Step 2: check the response and add the task if necessary
+        if len(self.progeny_data) == 0:
+            return None, None
+        self.finished = True
+        self.progeny_data.pop(-1)
+        output_data = {"response": "unknown"}
+        return None, output_data
+
+
 
 """This class represents a sub-type of the DialogueObject to confirm if the
 reference object is correct."""

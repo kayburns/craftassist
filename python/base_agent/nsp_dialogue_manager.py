@@ -130,7 +130,6 @@ class NSPDialogueManager(DialogueManager):
 
         # chat is a single line command
         speaker, chatstr = chat
-        import pdb; pdb.set_trace()
         if "def:" in chatstr:
             preprocessed_chatstrs, dial_objs = [], []
             chatstr = chatstr.replace("def:", "").split(";") # breaks with gt actions

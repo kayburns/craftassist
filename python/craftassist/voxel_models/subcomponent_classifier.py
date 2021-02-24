@@ -54,8 +54,6 @@ class SubcomponentClassifierWrapper:
             to_label.append(obj)
 
         for obj in to_label:
-            #points = [o[0] for o in obj]
-            #self.agent.point_s_at(points)
             self.subcomponent_classifier.block_objs_q.put(obj)
 
         # everytime we try to retrieve as many recognition results as possible
@@ -86,9 +84,9 @@ class SubcomponentClassifierWrapper:
                         else:
                             label2blocks[l] = [b]
                 
-                labels_str = label2blocks.keys().__repr__()
+                labels_str = " ".join(list(label2blocks.keys()))
                 self.agent.send_chat(
-                    "Here is what I think is in the scene." + labels_str
+                    "Here is what I think is in the scene: " + labels_str
                 )
                 for l, blocks in label2blocks.items():
                     ## if the blocks are contaminated we just ignore
