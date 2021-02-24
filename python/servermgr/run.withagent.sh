@@ -6,17 +6,18 @@
 S3_DEST=s3://craftassist/humanbot_data/$TIMESTAMP
 
 function background_agent() (
-    python3 /droidlet/craftassist/wait_for_cuberite.py --host localhost --port 25565
-    python3 /droidlet/craftassist/agent/craftassist_agent.py 1>agent.log 2>agent.log
+    python3 /craftassist/python/wait_for_cuberite.py --host localhost --port 25565
+    python3 /craftassist/python/craftassist/craftassist_agent.py --learn_online 1>agent.log 2>agent.log
 )
 
 background_agent &
 
 
-python3 /droidlet/craftassist/cuberite_process.py \
+python3 /craftassist/python/cuberite_process.py \
     --mode creative \
     --workdir . \
     --config flat_world \
+    --npy_schematic /craftassist/minecraft_specs/schematics/cleaned_houses/validation34.npy
     --seed 0 \
     --logging \
     --add-plugin shutdown_on_leave \
