@@ -6,7 +6,9 @@ import numpy as np
 import os
 import pickle
 
-PATH = os.path.join(os.path.dirname(__file__), "../../minecraft_specs")
+#PATH = os.path.join(os.path.dirname(__file__), "../../minecraft_specs")
+PATH = os.path.join(os.path.dirname(__file__), "/craftassist/minecraft_specs")
+print(os.listdir('../../'))
 assert os.path.isdir(PATH), (
     "Not found: "
     + PATH

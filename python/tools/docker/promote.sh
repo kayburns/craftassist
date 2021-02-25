@@ -14,7 +14,7 @@ fi
 
 MANIFEST=$(aws ecr batch-get-image \
     --repository-name craftassist \
-    --region us-west-1 \
+    --region us-east-2 \
     --image-ids imageTag=$IMAGE_TAG \
     --query images[].imageManifest \
     --output text)
@@ -25,7 +25,7 @@ aws ecr put-image \
     --repository-name craftassist \
     --image-tag latest \
     --image-manifest "$MANIFEST" \
-    --region us-west-1    
+    --region us-east-2
 
 echo
 echo Success!
