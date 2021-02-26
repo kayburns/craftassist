@@ -17,7 +17,7 @@ python3 /craftassist/python/cuberite_process.py \
     --mode creative \
     --workdir . \
     --config flat_world \
-    --npy_schematic /craftassist/minecraft_specs/schematics/cleaned_houses/validation34.npy
+    --npy_schematic /craftassist/minecraft_specs/cleaned_houses/validation34.npy
     --seed 0 \
     --logging \
     --add-plugin shutdown_on_leave \
