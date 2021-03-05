@@ -14,9 +14,17 @@ RUN git checkout ${current_branch}
 RUN mkdir -p python/craftassist/models/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
 RUN tar -xzvf models_folder.tar.gz -C python/craftassist/models/ --strip-components 1
+RUN mv python/craftassist/models/semantic_parser/ttad/ python/craftassist/models/ttad
+RUN mv python/craftassist/models/semantic_parser/ttad_bert_updated/ python/craftassist/models/ttad_bert_updated
+RUN mkdir python/craftassist/models/ttad_bert_updated/model/
+RUN mv python/craftassist/models/ttad_bert_updated/* python/craftassist/models/ttad_bert_updated/model/
+
 RUN mkdir -p python/craftassist/datasets/
 RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/datasets_folder.tar.gz -o datasets_folder.tar.gz 
 RUN tar -xzvf datasets_folder.tar.gz -C python/craftassist/datasets/ --strip-components 1
+
+RUN curl -OL http://craftassist.s3-us-west-2.amazonaws.com/pubr/collected_dataset.tar.gz -o collected_dataset.tar.gz
+RUN tar -xvf collected_dataset.tar.gz
 
 RUN pip3 install -r requirements.txt
 

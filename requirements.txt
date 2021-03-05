@@ -27,4 +27,5 @@ spacy==2.0.12
 tqdm==4.41.1
 word2number==1.1
 transformers
+faiss-cpu==1.6.0
 https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-2.0.0/en_core_web_sm-2.0.0.tar.gz
