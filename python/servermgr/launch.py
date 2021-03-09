@@ -25,6 +25,7 @@ def launch_task():
         taskDefinition="craftassist",
         count=1,
         launchType="FARGATE",
+        platformVersion="1.4.0",
         networkConfiguration={
             "awsvpcConfiguration": {
                 "subnets": SUBNET_IDS,

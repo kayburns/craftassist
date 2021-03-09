@@ -230,6 +230,7 @@ def launch_instance(task="craftassist", config="random", debug=False):
         taskDefinition=task,
         count=1,
         launchType="FARGATE",
+        platformVersion="1.4.0",
         networkConfiguration={
             "awsvpcConfiguration": {
                 "subnets": SUBNET_IDS,
