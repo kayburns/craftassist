@@ -12,7 +12,7 @@ RUN git clone --recursive git@github.com:kayburns/craftassist.git
 WORKDIR craftassist
 RUN git checkout ${current_branch}
 RUN mkdir -p python/craftassist/models/
-RUN curl http://craftassist.s3-us-west-2.amazonaws.com/pubr/models_folder.tar.gz -o models_folder.tar.gz
+RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp s3://mycraftassist/data_files/models_folder.tar.gz ./
 RUN tar -xzvf models_folder.tar.gz -C python/craftassist/models/ --strip-components 1
 RUN mv python/craftassist/models/semantic_parser/ttad/ python/craftassist/models/ttad
 RUN mv python/craftassist/models/semantic_parser/ttad_bert_updated/ python/craftassist/models/ttad_bert_updated
