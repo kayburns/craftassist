@@ -33,7 +33,7 @@ class DialogueObject(object):
     def check_finished(self):
         """Check if the object is finished processing."""
         self.current_step += 1
-        if self.current_step == self.max_steps:
+        if self.current_step == self.max_steps and not self.awaiting_response:
             logging.error("Stepped {} {} times, finishing".format(self, self.max_steps))
             self.finished = True
         return self.finished
@@ -66,7 +66,7 @@ class AwaitResponse(DialogueObject):
         if chatmem is not None:
             self.finished = True
             return "", {"response": chatmem}
-        if self.memory.get_time() - self.init_time > self.wait_time:
+        if self.wait_time and self.memory.get_time() - self.init_time > self.wait_time:
             self.finished = True
             # FIXME this shouldn't return data
             return "Okay! I'll stop waiting for you to answer that.", {"response": None}
@@ -343,7 +343,7 @@ class AskForHint(DialogueObject):
         """Ask a confirmation question and wait for response."""
         # Step 1: ask the question
         if not self.asked:
-            self.dialogue_stack.append_new(AwaitResponse, 10000)
+            self.dialogue_stack.append_new(AwaitResponse, None)
             self.dialogue_stack.append_new(Say, self.question)
             self.asked = True
             return "", None
@@ -352,8 +352,7 @@ class AskForHint(DialogueObject):
         if len(self.progeny_data) == 0:
             return None, None
         self.finished = True
-        self.progeny_data.pop(-1)
-        output_data = {"response": "unknown"}
+        _, output_data = self.progeny_data.pop(-1)
         return None, output_data
 
 

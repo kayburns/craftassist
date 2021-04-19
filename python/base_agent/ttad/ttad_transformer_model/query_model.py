@@ -72,14 +72,16 @@ class TTADBertModel(object):
                             logging.info("Decomposing {}".format(chat))
                             decomposed_chats.extend(decomp_res)
                         else:
-                            decomposed_chats.append(x_reps)
+                            decomposed_chats.append(
+                                (chat, x_reps, idx_rev_map, batch)
+                            )
                     else:
                         decomposed_chats.append(chat)
                 chats = decomposed_chats
 
             # retrieve dictionary for each chat
             commands = []
-            for chat in chats:
+            for chat, x_reps, idx_rev_map, batch in chats:
                 btr = beam_search(
                     x_reps, batch, idx_rev_map, self.encoder_decoder, model_device,
                     self.dataset, beam_size, well_formed_pen 
@@ -88,14 +90,14 @@ class TTADBertModel(object):
                     command = btr[1][0]
                 else:
                     command = btr[0][0]
-                commands.append(command)
+                commands.append((chat, command))
 
             # reduce down to one dictionary by linking action_sequence lists
-            tree = commands[0]
+            tree = commands[0][1]
             if len(commands) > 1 and tree.get("dialogue_type", "NONE") == "HUMAN_GIVE_COMMAND":
                 for command in commands[1:]:
-                    tree['action_sequence'].extend(command['action_sequence'])
-            return tree
+                    tree['action_sequence'].extend(command[1]['action_sequence'])
+            return [c[0] for c in commands], tree
 
         else:
             x_reps, batch, idx_rev_map, model_device = get_reps(

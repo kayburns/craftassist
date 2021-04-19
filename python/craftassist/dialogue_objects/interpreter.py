@@ -101,10 +101,19 @@ class Interpreter(DialogueObject):
                     "I thought you wanted me to do something, but now I don't know what"
                 )
             response = {} #TODO
-            for action_def in actions:
+            if len(actions) > 1:
+                for action in actions:
+                    new_action_dict = dict(self.action_dict)
+                    new_action_dict["action_sequence"] = [action]
+                    self.dialogue_stack.append_new(
+                        Interpreter, self.speaker, new_action_dict, self.chatstr
+                    )
+                self.finished = True
+                raise NextDialogueStep()
+            else:
                 chat = (self.speaker, self.chatstr)
-                action_type = action_def["action_type"]
-                response = self.action_handlers[action_type](self.speaker, action_def)
+                action_type = actions[0]["action_type"]
+                response = self.action_handlers[action_type](self.speaker, actions[0])
             return response
         except NextDialogueStep:
             return None, None
@@ -274,7 +283,9 @@ class Interpreter(DialogueObject):
                     self.dialogue_stack.append_new(AskForHint, d)
                     raise NextDialogueStep()
                 else:
-                    self.progeny_data.pop(-1)
+                    response = self.progeny_data.pop(-1)[1]["response"]
+                    if response.chat_text != "hint":
+                        raise ErrorWithResponse("You didn't give me a hint, so I'm skipping that command")
             except NextDialogueStep:
                 return None, None
 

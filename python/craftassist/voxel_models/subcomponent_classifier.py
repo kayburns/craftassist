@@ -85,9 +85,14 @@ class SubcomponentClassifierWrapper:
                             label2blocks[l] = [b]
                 
                 labels_str = " ".join(list(label2blocks.keys()))
-                self.agent.send_chat(
-                    "Here is what I think is in the scene: " + labels_str
-                )
+                if len(labels_str) == 1:
+                    self.agent.send_chat(
+                        "I found this in the scene: " + labels_str
+                    )
+                elif len(labels_str) > 1:
+                    self.agent.send_chat(
+                        "I found these in the scene: " + labels_str
+                    )
                 for l, blocks in label2blocks.items():
                     ## if the blocks are contaminated we just ignore
                     if not contaminated(blocks):

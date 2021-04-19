@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import tempfile
 import time
+import random
 
 import edit_cuberite_config
 import place_blocks
@@ -134,6 +135,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", choices=["creative", "survival"], default="creative")
     parser.add_argument("--workdir")
     parser.add_argument("--npy_schematic")
+    parser.add_argument("--select_from", help="txt file with npy paths")
     parser.add_argument("--random_shapes", action="store_true")
     parser.add_argument("--add-plugin", action="append", default=[])
     args = parser.parse_args()
@@ -149,6 +151,12 @@ if __name__ == "__main__":
         if args.random_shapes:
             # TODO allow both?
             print("warning: ignoring the schematic and using random shapes")
+    if args.select_from:
+        with open(args.select_from) as f:
+            schematic_options = f.readlines()
+            npy_schematic = random.choice(schematic_options).strip()
+        schematic = np.load(npy_schematic)
+
     if args.random_shapes:
         schematic = build_shape_scene()
 

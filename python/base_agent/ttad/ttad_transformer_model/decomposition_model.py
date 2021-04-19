@@ -1,19 +1,29 @@
-import torch
-import torch.nn as nn
-import numpy as np
-import faiss
-import pickle as pkl
 import os
+import glob
+from datetime import datetime
+
+import faiss
+import numpy as np
+import torch
+import torch.nn as nna
 
 class DecomposeOnline():
 
-    def __init__(self, dim=768, db_file="db.pkl", thres=20):
+    def __init__(self, dim=768, db="/craftassist/db/", thres=20):
         self.index = faiss.IndexFlatL2(dim)
         self.thres = thres
-        if os.path.exists(db_file):
-            xb, seqs = pkl.load(db_file)
-            self.index.add(xb)
-            self.seqs = seqs
+        self.db = db
+        self.seqs = []
+        if os.path.exists(db):
+            npy_files = glob.glob(os.path.join(self.db, '*.npy'))
+            txt_files = [fname.replace('npy', 'txt') for fname in npy_files]
+            for fname in npy_files:
+                self.index.add(np.load(fname))
+            for fname in txt_files:
+                with open(fname, 'r') as f:
+                    seq = f.readlines()
+                    seq = [s.strip() for s in seq] 
+                    self.seqs.append(seq)
         else:
             self.seqs = []
         print(self.index.ntotal)
@@ -30,12 +40,20 @@ class DecomposeOnline():
         else:
             return self.seqs[I[0][0]]
 
+    def write_to_db(self, vec, seq):
+        fname = datetime.now().strftime("%Y-%m-%d_%H_%M_%S_%f")
+        np.save(os.path.join(self.db, f'new/{fname}.npy'), vec)
+        with open(os.path.join(self.db, f'new/{fname}.txt'), 'w') as f:
+            for line in seq:
+                f.write(f'{line}\n')
+
     def update(self, x_reps, action_sequence):
         x_reps = x_reps.cpu().detach().numpy()
         feat = self.reduce_word_features(x_reps)
         self.index.add(feat)
         self.seqs.append(action_sequence)
-
+        self.write_to_db(feat, action_sequence)
+        
     def save(self):
         return None
 

@@ -35,6 +35,9 @@ RUN mkdir /craftassist/python/VoxelCNN/logs/
 RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp s3://mycraftassist/data_files/prims_block_emb_feat32.tar.gz /craftassist/python/VoxelCNN/logs/ && tar -xvf /craftassist/python/VoxelCNN/logs/prims_block_emb_feat32.tar.gz -C /craftassist/python/VoxelCNN/logs/
 # RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp client_ccache.tar.gz s3://craftassist/pubr/client_ccache.tar.gz
 
+RUN mkdir db
+RUN AWS_ACCESS_KEY_ID=$(cat /AWS_S3_ACCESS_KEY_ID.txt) AWS_SECRET_ACCESS_KEY=$(cat /AWS_S3_SECRET_ACCESS_KEY.txt) aws s3 cp s3://mycraftassist/db/ /craftassist/db/ --recursive
+RUN mkdir db/new/
 
 RUN mkdir workdir
 WORKDIR workdir

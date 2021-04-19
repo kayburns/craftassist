@@ -124,13 +124,13 @@ class NSPDialogueManager(DialogueManager):
 
     def maybe_get_dialogue_obj(self, chat: Tuple[str, str]) -> Optional[DialogueObject]:
         """Process a chat and maybe modify the dialogue stack"""
-
         if len(self.dialogue_stack) > 0 and self.dialogue_stack[-1].awaiting_response:
             return None
 
         # chat is a single line command
         speaker, chatstr = chat
         if "def:" in chatstr:
+            self.agent.send_chat("Ok, processing your request.")
             preprocessed_chatstrs, dial_objs = [], []
             chatstr = chatstr.replace("def:", "").split(";") # breaks with gt actions
             for s in chatstr:
@@ -153,6 +153,7 @@ class NSPDialogueManager(DialogueManager):
             if any([chat in self.botGreetings for chat in preprocessed_chatstrs]):
                 return BotGreet(**self.dialogue_object_parameters)
 
+            self.agent.send_chat("Ok, processing your request.")
             # NOTE: preprocessing in model code is different, this shouldn't break anything
             logical_form = self.get_logical_form(s=preprocessed_chatstrs[0], model=self.model)
             return self.handle_logical_form(speaker, logical_form, preprocessed_chatstrs[0])
@@ -209,19 +210,33 @@ class NSPDialogueManager(DialogueManager):
         else:
             logging.info("Querying the semantic parsing model")
             if chat_as_list:
-                d = model.parse([s])
+                d_chats, d = model.parse([s])
             else:
-                d = model.parse(chat=s)  # self.ttad_model.parse(chat=s)
+                d_chats, d = model.parse(chat=s)  # self.ttad_model.parse(chat=s)
 
         # perform lemmatization on the chat
-        logging.info('chat before lemmatization "{}"'.format(s))
-        lemmatized_chat = sp(s)
-        chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
-        logging.info('chat after lemmatization "{}"'.format(chat))
+        if len(d_chats) > 1:
+            for i, s in enumerate(d_chats):
+                logging.info('chat before lemmatization "{}"'.format(s))
+                lemmatized_chat = sp(s)
+                chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
+                logging.info('chat after lemmatization "{}"'.format(chat))
 
-        # Get the words from indices in spans
-        process_spans(d, re.split(r" +", s), re.split(r" +", chat))
-        logging.info('ttad pre-coref "{}" -> {}'.format(chat, d))
+                # Get the words from indices in spans
+                process_spans(d['action_sequence'][i], re.split(r" +", s), re.split(r" +", chat))
+                logging.info('ttad pre-coref partial "{}" -> {}'.format(chat, d))
+            logging.info('ttad pre-coref fully decomp "{}" -> {}'.format(d_chats, d))
+        else:
+            s = d_chats[0]
+            logging.info('chat before lemmatization "{}"'.format(s))
+            lemmatized_chat = sp(s)
+            chat = " ".join(str(word.lemma_) for word in lemmatized_chat)
+            logging.info('chat after lemmatization "{}"'.format(chat))
+
+            # Get the words from indices in spans
+            process_spans(d, re.split(r" +", s), re.split(r" +", chat))
+            logging.info('ttad pre-coref "{}" -> {}'.format(chat, d))
+
 
         # web app
         if self.web_app:
