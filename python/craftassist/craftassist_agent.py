@@ -106,7 +106,7 @@ class CraftAssistAgent(LocoMCAgent):
 
     def perceive(self, force=False):
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
-        for v in self.perception_modules.values():
+        for k, v in self.perception_modules.items():
             v.perceive(force=force)
         self.areas_to_perceive = []
 

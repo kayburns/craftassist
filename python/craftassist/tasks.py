@@ -590,7 +590,7 @@ class FastBuild(Task):
         self.ref_blocks = task_data["ref_blocks"]
         self.ref_node_memid = task_data["ref_node_memid"]
         self.last_stepped_time = agent.memory.get_time()
-        self.no_loc_given = not ('text_span' in task_data['location_dict'])
+        self.no_loc_given = False #not ('text_span' in task_data['location_dict'])
         self.to_build = task_data["parse"]["schematic"]["has_name"]
         self.size = task_data["parse"]["schematic"].get("has_size")
 
