@@ -137,7 +137,7 @@ class SubComponentClassifier(Process):
         The main recognition loop of the classifier
         """
         while True:  # run forever
-            for _ in range(10):
+            for _ in range(30):
                 print("If I print here, it solves the bug ¯\_(ツ)_/¯, priority thing?")
             tb = self.block_objs_q.get(block=True, timeout=None)
             # FLAG: may need to change for time

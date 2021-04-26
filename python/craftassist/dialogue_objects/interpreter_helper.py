@@ -620,7 +620,8 @@ def fetch_environment(interpreter, speaker):
     # access house, our default reference object
     location_d = {'filters': {'has_name': 'house'}}
     mems = interpret_reference_object(
-            interpreter, speaker, location_d, limit=2, loose_speakerlook=True)
+        interpreter, speaker, location_d, limit=2, loose_speakerlook=True
+    )
     mems = mems[:2]
     interpreter.memory.update_recent_entities(mems) # why?
 
