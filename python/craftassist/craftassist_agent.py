@@ -107,6 +107,8 @@ class CraftAssistAgent(LocoMCAgent):
     def perceive(self, force=False):
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         for k, v in self.perception_modules.items():
+            if k == "semseg":
+                force = True
             v.perceive(force=force)
         self.areas_to_perceive = []
 
