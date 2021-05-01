@@ -31,7 +31,7 @@ class SubcomponentClassifierWrapper:
         if model_path is not None:
             self.subcomponent_classifier = SubComponentClassifier(
                 voxel_model_path=model_path, vocab_path=vocab_path,
-                temps=[1], true_temp=self.true_temp)
+            )
             self.subcomponent_classifier.start()
         else:
             self.subcomponent_classifier = None
@@ -58,55 +58,50 @@ class SubcomponentClassifierWrapper:
 
         # everytime we try to retrieve as many recognition results as possible
         while not self.subcomponent_classifier.loc2labels_q.empty():
-            temp2loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
+            loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
 
-            for temp, loc2labels in temp2loc2labels.items():
-                loc2ids = dict(obj)
-                label2blocks = {}
+            loc2ids = dict(obj)
+            label2blocks = {}
 
-                def contaminated(blocks):
-                    """
-                    Check if blocks are still consistent with the current world
-                    """
-                    mx, Mx, my, My, mz, Mz = get_bounds(blocks)
-                    yzxb = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
-                    for b, _ in blocks:
-                        x, y, z = b
-                        if loc2ids[b][0] != yzxb[y - my, z - mz, x - mx, 0]:
-                            return True
-                    return False
+            def contaminated(blocks):
+                """
+                Check if blocks are still consistent with the current world
+                """
+                mx, Mx, my, My, mz, Mz = get_bounds(blocks)
+                yzxb = self.agent.get_blocks(mx, Mx, my, My, mz, Mz)
+                for b, _ in blocks:
+                    x, y, z = b
+                    if loc2ids[b][0] != yzxb[y - my, z - mz, x - mx, 0]:
+                        return True
+                return False
 
-                for loc, labels in loc2labels.items():
-                    b = (loc, loc2ids[loc])
-                    for l in labels:
-                        if l in label2blocks:
-                            label2blocks[l].append(b)
-                        else:
-                            label2blocks[l] = [b]
-                
-                labels_str = " ".join(list(label2blocks.keys()))
-                if len(labels_str) == 1:
-                    self.agent.send_chat(
-                        "I found this in the scene: " + labels_str
-                    )
-                elif len(labels_str) > 1:
-                    self.agent.send_chat(
-                        "I found these in the scene: " + labels_str
-                    )
-                for l, blocks in label2blocks.items():
-                    ## if the blocks are contaminated we just ignore
-                    if not contaminated(blocks):
-                        #locs = [loc for loc, idm in blocks]
-                        if temp == self.true_temp:
-                            InstSegNode.create(
-                                self.memory, blocks, [l, 'semseg'])
-                        else:
-                            PropSegNode.create(
-                                self.memory, blocks, "t{}_seg".format(temp),
-                                [l, 'semseg'])
+            for loc, labels in loc2labels.items():
+                b = (loc, loc2ids[loc])
+                for l in labels:
+                    if l in label2blocks:
+                        label2blocks[l].append(b)
+                    else:
+                        label2blocks[l] = [b]
+            
+            labels_str = " ".join(list(label2blocks.keys()))
+            if len(labels_str) == 1:
+                self.agent.send_chat(
+                    "I found this in the scene: " + labels_str
+                )
+            elif len(labels_str) > 1:
+                self.agent.send_chat(
+                    "I found these in the scene: " + labels_str
+                )
+            for l, blocks in label2blocks.items():
+                ## if the blocks are contaminated we just ignore
+                if not contaminated(blocks):
+                    #locs = [loc for loc, idm in blocks]
+                    InstSegNode.create(
+                        self.memory, blocks, [l, 'semseg'])
 
     def update(self, label, blocks, house):
-        self.subcomponent_classifier.to_update_q.put((label, blocks, house))
+        pass
+        #self.subcomponent_classifier.to_update_q.put((label, blocks, house))
 
 
 class SubComponentClassifier(Process):
@@ -114,7 +109,7 @@ class SubComponentClassifier(Process):
     A classifier class that calls a voxel model to output object tags.
     """
 
-    def __init__(self, voxel_model_path=None, vocab_path=None, temps=[1], true_temp=1):
+    def __init__(self, voxel_model_path=None, vocab_path=None, true_temp=1):
         super().__init__()
 
         if voxel_model_path is not None:
@@ -127,9 +122,7 @@ class SubComponentClassifier(Process):
 
         self.block_objs_q = Queue()  # store block objects to be recognized
         self.loc2labels_q = Queue()  # store loc2labels dicts to be retrieved by the agent
-        self.to_update_q = Queue()
-        self.temps = temps
-        self.true_temp = true_temp
+        #self.to_update_q = Queue()
         self.daemon = True
 
     def run(self):
@@ -137,29 +130,19 @@ class SubComponentClassifier(Process):
         The main recognition loop of the classifier
         """
         while True:  # run forever
-            for _ in range(30):
-                print("If I print here, it solves the bug ¯\_(ツ)_/¯, priority thing?")
+            #for _ in range(100):
+            #    print("If I print here, it solves the bug ¯\_(ツ)_/¯, priority thing?")
             tb = self.block_objs_q.get(block=True, timeout=None)
-            # FLAG: may need to change for time
-            temp2loc2labels = {}
-            for temp in self.temps:
-                loc2labels = self._watch_single_object(tb, t=temp)
-                if temp == self.true_temp:
-                    for k in loc2labels.keys():
-                        loc2labels[k].append("house")
-                else:
-                    for k in loc2labels.keys():
-                        reformatted_labels = ['t{}_'.format(temp)+label
-                                                for label in loc2labels[k]]
-                        loc2labels[k] = reformatted_labels
-                temp2loc2labels[temp] = loc2labels
+            loc2labels = self._watch_single_object(tb)
+            for k in loc2labels.keys():
+                loc2labels[k].append("house")
 
-            self.loc2labels_q.put((temp2loc2labels, tb))
-            try:
-                label, blocks, house = self.to_update_q.get_nowait()
-                self.update(label, blocks, house)
-            except queue.Empty:
-                pass
+            self.loc2labels_q.put((loc2labels, tb))
+            #try:
+            #    label, blocks, house = self.to_update_q.get_nowait()
+            #    self.update(label, blocks, house)
+            #except queue.Empty:
+            #    pass
 
     def _watch_single_object(self, tuple_blocks, t=1):
         """

@@ -107,8 +107,6 @@ class CraftAssistAgent(LocoMCAgent):
     def perceive(self, force=False):
         self.areas_to_perceive = cluster_areas(self.areas_to_perceive)
         for k, v in self.perception_modules.items():
-            if k == "semseg":
-                force = True
             v.perceive(force=force)
         self.areas_to_perceive = []
 
@@ -118,7 +116,7 @@ class CraftAssistAgent(LocoMCAgent):
         if raw_incoming_chats:
             # force to get objects
             self.perceive(force=True)
-            # logging.info("Incoming chats: {}".format(raw_incoming_chats))
+            logging.info("Incoming chats: {}".format(raw_incoming_chats))
 
         incoming_chats = []
         for raw_chat in raw_incoming_chats:
