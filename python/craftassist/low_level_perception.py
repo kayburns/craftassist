@@ -126,6 +126,8 @@ class LowLevelMCPerception:
     # clean all this up...
     # eventually some conditions for not committing air/negative blocks
     def maybe_add_block_to_memory(self, xyz: XYZ, idm: IDM, agent_placed=False):
+        #if xyz == (6, 69, 11):
+        #    import pdb; pdb.set_trace()
         if not agent_placed:
             interesting, player_placed, agent_placed = self.is_placed_block_interesting(
                 xyz, idm[0]
@@ -160,14 +162,15 @@ class LowLevelMCPerception:
 
         if idm[0] != 0:
             # find memid for house
-            house_memid = self.memory.get_memids_by_tag('house')
+            house_memids = self.memory.get_memids_by_tag('house')
             # modify house node
-            if len(house_memid) > 0:
-                InstSegNode.add_block_to_seg(
-                    self.memory, xyz, idm, house_memid[0]
-                )
-                self.memory.set_memory_updated_time(house_memid[0])
-                self.memory.set_memory_attended_time(house_memid[0])
+            if len(house_memids) > 0:
+                for house_memid in house_memids:
+                    InstSegNode.add_block_to_seg(
+                        self.memory, xyz, idm, house_memid
+                    )
+                    self.memory.set_memory_updated_time(house_memid)
+                    self.memory.set_memory_attended_time(house_memid)
 
         if len(adjacent_memids) == 0:
             # new block object

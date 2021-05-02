@@ -53,12 +53,12 @@ class SubcomponentClassifierWrapper:
         for obj in all_nearby_objects(self.agent.get_blocks, self.agent.pos):
             to_label.append(obj)
 
-        for obj in to_label:
+        for obj in to_label:                                                    # (6, 69, 11) in [b[0] for b in obj]
             self.subcomponent_classifier.block_objs_q.put(obj)
 
         # everytime we try to retrieve as many recognition results as possible
         while not self.subcomponent_classifier.loc2labels_q.empty():
-            loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()
+            loc2labels, obj = self.subcomponent_classifier.loc2labels_q.get()   # (6, 69, 11) in [b[0] for b in obj]
 
             loc2ids = dict(obj)
             label2blocks = {}

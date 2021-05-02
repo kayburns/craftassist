@@ -627,6 +627,8 @@ def fetch_environment(interpreter, speaker):
 
     mem = mems[0]
     blocks = mem.blocks
+    #if (6, 69, 11) in list(blocks.keys()):
+    #    import pdb; pdb.set_trace()
 
     return mem
 
