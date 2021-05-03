@@ -264,5 +264,5 @@ class NSPDialogueManager(DialogueManager):
 
     def remember_decomposition(self, chat, decomposition):
         x_reps = self.model.get_reps(chat)
-        self.model.decomposition_model.update(x_reps, decomposition)
+        self.model.decomposition_model.update(x_reps, chat, decomposition)
 

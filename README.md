@@ -180,6 +180,10 @@ If you would like to cite this repository in your research, please cite [the Cra
 }
 ```
 
+## Retrieving Logs
+
+If a user's logs fail to upload to S3 for whatever reason, the event logs are sent to CloudWatch > Log Groups > /ecs/craftassist
+
 ## License
 
 CraftAssist is [MIT licensed](./LICENSE).
