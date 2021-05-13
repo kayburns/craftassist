@@ -2,7 +2,6 @@ import os
 import glob
 import argparse
 
-from filter_validation_homes import filter_validation
 from render_schematic import render
 
 def create_html(im_dir, pattern='*180.png'):
@@ -15,13 +14,12 @@ def create_html(im_dir, pattern='*180.png'):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--npy_dir', required=True)
-    parser.add_argument('--out_dir', required=True)
     parser.add_argument(
-        '--filter', action='store_true',
-        help='whether or not to filter npy files for good form (used in ' \
-            'creating good validation set'
+        '--npy_files',
+        default='/craftassist/mturk_exp_houses.txt',
+        help='file of npy file paths'
     )
+    parser.add_argument('--out_dir', required=True)
     parser.add_argument('--pattern', default='*180.png')
     parser.add_argument('--debug', action='store_true')
     args = parser.parse_args()
@@ -29,10 +27,8 @@ if __name__ == '__main__':
     if args.debug:
         import pdb; pdb.set_trace()
 
-    if args.filter:
-        to_vis = filter_validation(args.npy_dir)
-    else:
-        to_vis = glob.glob(os.path.join(args.npy_dir, '*.npy'))
+    with open(args.npy_files, 'r') as f:
+        to_vis = [l.strip() for l in f.readlines()]
 
     for fname in to_vis:
         render(

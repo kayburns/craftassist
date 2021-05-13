@@ -608,6 +608,8 @@ class FastBuild(Task):
         # determine number blocks predicted based on specified size
         if self.size == "small":
             steps = 5
+        elif self.size == "tiny":
+            steps = 2
         elif self.size == "large":
             steps = 50
         elif self.size == "huge":
