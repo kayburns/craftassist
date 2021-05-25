@@ -1,5 +1,5 @@
 # Copyright (c) Facebook, Inc. and its affiliates.
-FROM shaomai/craftassist:latest as base
+FROM shaomai/craftassist@sha256:0287a71debc55b3db9bfda0e444a52ce1ca89a879ae8054419c149b8273c5480 as base
 
 COPY python/tools/docker/mcdeploy.key /mcdeploy.key
 COPY python/tools/docker/AWS_S3_ACCESS_KEY_ID.txt /AWS_S3_ACCESS_KEY_ID.txt
