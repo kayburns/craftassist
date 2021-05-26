@@ -38,14 +38,18 @@ def ground_height(blocks):
 
 
 def render(
-    npy_file, out_dir, world, seed, no_chunky, no_vision, port, distance, yaws, spp, img_size
+    npy_file, out_dir, world, seed, no_chunky, no_vision, port, distance, yaws,
+    spp, img_size, focus=None, npy_basename=None
 ):
     """This function renders the npy_file in the world using cuberite"""
 
     # step 1: create the world with Cuberite, with npy blocks placed
     logging.info("Launching cuberite at port {}".format(port))
     if npy_file != "":
-        schematic = np.load(npy_file)
+        if type(npy_file) == str:
+            schematic = np.load(npy_file)
+        else:
+            schematic = npy_file
         p = CuberiteProcess(
             world, seed=0, game_mode="creative", place_blocks_yzx=schematic, port=port
         )
@@ -73,24 +77,25 @@ def render(
         render_view_bin
     ), "{} not found.\n\nTry running: make render_view".format(render_view_bin)
 
-    if schematic is not None:
-        # render a numpy object, set focus and distance
-        # remove blocks below ground-level
-        g = ground_height(schematic)
-        schematic = schematic[(g or 0) :, :, :, :]
+    if type(schematic) != list:
+        if schematic is not None:
+            # render a numpy object, set focus and distance
+            # remove blocks below ground-level
+            g = ground_height(schematic)
+            schematic = schematic[(g or 0) :, :, :, :]
 
-        ymax, zmax, xmax, _ = schematic.shape
-        ymid, zmid, xmid = ymax // 2, zmax // 2, xmax // 2
-        focus = np.array([xmid, ymid + 63, zmid])  # TODO: +63 only works for flat_world seed=0
+            ymax, zmax, xmax, _ = schematic.shape
+            ymid, zmid, xmid = ymax // 2, zmax // 2, xmax // 2
+            focus = np.array([xmid, ymid + 63, zmid])  # TODO: +63 only works for flat_world seed=0
 
-        if distance is None:
-            distance = int((xmax ** 2 + zmax ** 2) ** 0.5)
-    else:
-        f = open(p.workdir + "/spawn.txt", "r")
-        playerx, playery, playerz = [float(i) for i in f.read().split("\n")]
-        f.close()
+            if distance is None:
+                distance = int((xmax ** 2 + zmax ** 2) ** 0.5)
+        else:
+            f = open(p.workdir + "/spawn.txt", "r")
+            playerx, playery, playerz = [float(i) for i in f.read().split("\n")]
+            f.close()
 
-        print("Spawn position:", playerx, playery, playerz)
+            print("Spawn position:", playerx, playery, playerz)
 
     procs = []
     if yaws is None:
@@ -131,8 +136,9 @@ def render(
             procs.append(subprocess.Popen(call))
 
         if not no_chunky:
-            npy_basename = os.path.basename(npy_file)
-            npy_basename = os.path.splitext(npy_basename)[0]
+            if npy_basename is None:
+                npy_basename = os.path.basename(npy_file)
+                npy_basename = os.path.splitext(npy_basename)[0]
             call = [
                 sys.executable,
                 # "python",
